@@ -1,0 +1,29 @@
+--- ../../wmake
++++ ./wmake
+@@ -55,6 +55,13 @@ USAGE
+     exit 1
+ }
+ 
++show_start_time() {
++    REL_PWD=`echo $PWD | sed 's='$WM_PROJECT_INST_DIR'/=='`
++    NOW_DATESECONDS=`date +%s`
++    echo "WMAKE timing start: PWD='$REL_PWD' Time Stamp=$NOW_DATESECONDS"
++    unset REL_PWD NOW_DATESECONDS
++}
++
+ # provide immediate help, even if none of the environment is set
+ if [ "$1" = "-h" -o "$1" = "-help" ]
+ then
+@@ -152,6 +166,12 @@ fi
+ 
+ 
+ #------------------------------------------------------------------------------
++# Emit time stamp, if so requested
++#------------------------------------------------------------------------------
++
++if [ "x$WM_DO_TIMINGS" = "xYes" ]; then show_start_time; fi
++
++#------------------------------------------------------------------------------
+ # Recurse the application directories tree
+ #------------------------------------------------------------------------------
+ 
