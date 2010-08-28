@@ -2,7 +2,7 @@
 #
 #
 # USAGE: $ chmod +x installOF.sh
-#		 $ ./installOF.sh
+#    $ ./installOF.sh
 #
 # THIS SCRIPT IS UNDER GPLv3 LICENSE
 # See script home at:
@@ -10,7 +10,9 @@
 #
 # Several people have contributed for this project on http://www.cfd-online.com
 #-----------------------TODOS--------------------------------------
-#TODO 1 - Test and debug!
+#TODO 1 - Create advanced settings, than agregate all nontrivial settings in there - only partially implemented...
+#TODO 2 - enable SYSTEMOPENMPI in bashrc
+#TODO 3 - use wmakeScheduler for multiple building hosts"
 
 #Code ---------------------------------------------------------
 
@@ -600,25 +602,6 @@ function define_packages_to_download()
     echo "Sorry, architecture not recognized, aborting."
     exit 1
   fi
-
-  #Kitware paraview files to download if USE_KITWARE_PV is selected
-  KV_PV_BASEURL="http://www.paraview.org/files/v3.8/"
-  if [ "$arch" == "x86_64" ]; then
-     #need dir for untaring
-     KV_PV_FILE="ParaView-3.8.0-Linux-x86_64.tar.gz"
-     KV_PV_DIR="ParaView-3.8.0-Linux-x86_64"
-  elif [ x`echo $arch | grep -e "i.86"` != "x" ]; then
-     KV_PV_FILE="ParaView-3.8.0-Linux-i686.tar.gz"
-     KV_PV_DIR="ParaView-3.8.0-Linux-i686"
-  else
-    echo "Sorry, architecture not recognized, aborting."
-    exit 1
-  fi
-
-  #Repository paraview -> upgraded paraFoam script
-  if [ "x$USE_REPO_PV" == "xYes" ]; then
-    PFOAM_PATCHFILE="paraFoamSys"
-  fi
   
   #patch file for MPFR for gcc 4.3.3 to build properly
   MPFRPATCHFILE="patchMPFR"
@@ -693,11 +676,6 @@ function install_ubuntu_packages()
   #install OSMesa when chosen for ParaView
   if [ "x$BUILD_PARAVIEW_WITH_OSMESA" == "xYes" ]; then
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libosmesa6 libosmesa6-dev"
-  fi
-
-  #if paraview from repository option was selected, add it to the list of packages
-  if [ "x$USE_REPO_PV" == "xYes" ]; then
-    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL paraview"
   fi
 
   #now remove the ones that are already installed
@@ -888,16 +866,6 @@ function download_files()
     do_wget "$OPENFOAM_UBUNTU_SCRIPT_REPO" "$CCMIO_MAKEFILES_FILES"
     do_wget "$OPENFOAM_UBUNTU_SCRIPT_REPO" "$CCMIO_MAKEFILES_OPTIONS"
   fi
- 
-  if [ "$USE_KITWARE_PV" == "xYes" ]; then
-    #get paraview 3.8.1 from kitware, which has native openfoam reader
-    do_wget "$KV_PV_BASEURL" "$KV_PV_FILE"
-  fi
-
-  if [ "$USE_REPO_PV" == "xYes" ]; then
-    #get our patched version of paraFoam -> paraFoamSys
-    do_wget "$OPENFOAM_UBUNTU_SCRIPT_REPO" "$PFOAM_PATCHFILE"
-  fi
 }
 
 #Unpack downloaded files
@@ -907,12 +875,16 @@ function unpack_downloaded_files()
 
   echo "------------------------------------------------------"
   echo "Untar files -- This can take time"
-  echo "Untaring $THIRDPARTY_GENERAL"
-  #TODO: option "-n" in "pv" will allow the usage of "dialog --gauge" :)
-  pv $THIRDPARTY_GENERAL | tar -xz
-  
+  if [ "x$INSTALLMODE" != "xcustom" ]; then 
+    echo "Untaring $THIRDPARTY_GENERAL"
+    #TODO: option "-n" in "pv" will allow the usage of "dialog --gauge" :)
+    pv $THIRDPARTY_GENERAL | tar -xz
+  fi
+
   #check if $THIRDPARTY_BIN is provided, because one could want to build from sources
-  if [ "x$THIRDPARTY_BIN" != "x" ]; then 
+  #TODO: in custom mode, it doesn't unpack because the only situation where it could be necessary is if 
+  #      the pre-built ParaView is required back again... and such option doesn't explicitly exist.
+  if [ "x$THIRDPARTY_BIN" != "x" -a "x$INSTALLMODE" != "xcustom" ]; then 
     cd_openfoam
     echo "Untaring $THIRDPARTY_BIN"
     pv $THIRDPARTY_BIN | tar -xz
@@ -926,14 +898,6 @@ function unpack_downloaded_files()
     cd ThirdParty-1.6/cmake-2.6.4/platforms/
     #this is necessary, since there isn't a pre-build made for 64bit
     ln -s linux linux64
-  fi
-
-  if [ "x$USE_KITWARE_PV" != "xYes" ]; then
-    cd_openfoam
-    echo "Untaring $KV_PV_FILE"
-    pv $KV_PV_FILE | tar -xz
-    #put ParaView in 3rd Party directory
-    mv "$KV_PV_DIR" "ThirdParty-1.6/$KV_PV_DIR"
   fi
   
   if [ "x$BUILD_QT" == "xYes" ]; then
@@ -1103,18 +1067,13 @@ function add_openfoam_to_bashrc()
   echo "------------------------------------------------------"
 
   #nuke ~/.bashrc entries that have references to the same script
-  cat ~/.bashrc | grep -v 'OpenFOAM/OpenFOAM-1.6.x/etc/bashrc' > ~/.bashrc.new
+  cat ~/.bashrc | grep -v "$PATHOF/OpenFOAM-1.6.x/etc/bashrc" > ~/.bashrc.new
   cp ~/.bashrc ~/.bashrc.old
   mv ~/.bashrc.new ~/.bashrc
   if [ "x$USE_ALIAS_FOR_BASHRC" == "xYes" ]; then
     echo -e "alias startFoam=\". $PATHOF/OpenFOAM-1.6.x/etc/bashrc\"" >> ~/.bashrc
   else
     echo ". $PATHOF/OpenFOAM-1.6.x/etc/bashrc" >> ~/.bashrc
-  fi
-
-  #add kitware paraview to path
-  if [ "x$USE_KITWARE_PV" == "xYes" ]; then
-     echo "PATH=$PATHOF/OpenFOAM-1.6.x/ThirdParty-1.6/$KV_PV_DIR/bin:$PATH" >> .bashrc
   fi
 }
 
@@ -1263,14 +1222,9 @@ function build_awopenfoam_progress_dialog()
     ( #while true is used as a containment cycle...
     while true;
     do
-      if [ "x$BUILD_AWOPENFOAMDOC_START_TIME" == "x" -a -e "$BUILD_AWOPENFOAM_LOG" ]; then
+      if [ -e "$BUILD_AWOPENFOAM_LOG" ]; then
         BUILD_AWOPENFOAM_MAKECOUNT=`grep 'WMAKE timing start' "$BUILD_AWOPENFOAM_LOG" | wc -l`
         nowpercent=`expr $BUILD_AWOPENFOAM_MAKECOUNT \* 100 / $BUILD_AWOPENFOAM_ESTIM_BUILD_COUNT`
-      else
-        if [ -e "$BUILD_AWOPENFOAMDOC_LOG" ]; then
-          BUILD_AWOPENFOAM_NOWCOUNT=`cat "$BUILD_AWOPENFOAMDOC_LOG" | grep -e "^Parsing file" -e "^Generating code for file" -e "^Generating docs for" -e "^Generating dependency graph for directory" | wc -l`
-          nowpercent=`expr $BUILD_AWOPENFOAM_NOWCOUNT \* 100 / $BUILD_AWOPENFOAMDOC_ESTIMCOUNT`
-        fi
       fi
       
       if [ "x$nowpercent" != "x$percent" ]; then
@@ -1280,25 +1234,13 @@ function build_awopenfoam_progress_dialog()
       echo $percent
       echo "XXX"
       echo "Build OpenFOAM:"
-      if [ "x$BUILD_AWOPENFOAMDOC_START_TIME" == "x" ]; then
-        echo "The Allwmake build process is going to be logged in the file:"
-        echo "  $BUILD_AWOPENFOAM_LOG"
-        echo "If you want to, you can follow the progress of this build"
-        echo "process, by opening a new terminal and running:"
-        echo "  tail -F $BUILD_AWOPENFOAM_LOG"
-      else
-        echo "The Doxygen build process is going to be logged in the file:"
-        echo "  $BUILD_AWOPENFOAMDOC_LOG"
-        echo "If you want to, you can follow the progress of this build"
-        echo "process, by opening a new terminal and running:"
-        echo "  tail -F $BUILD_AWOPENFOAMDOC_LOG"
-      fi
+      echo "The Allwmake build process is going to be logged in the file:"
+      echo "  $BUILD_AWOPENFOAM_LOG"
+      echo "If you want to, you can follow the progress of this build"
+      echo "process, by opening a new terminal and running:"
+      echo "  tail -F $BUILD_AWOPENFOAM_LOG"
       echo "WARNING: THIS CAN TAKE HOURS..."
       echo -e "\nAllwmake started to build at:\n\t$BUILD_AWOPENFOAM_START_TIME"
-      if [ "x$BUILD_AWOPENFOAMDOC_START_TIME" != "x" ]; then
-        echo -e "Allwmake finished building at:\n\t$BUILD_AWOPENFOAM_END_TIME\n"
-        echo -e "Doxygen started to build OpenFOAM code documentation at:\n\t$BUILD_AWOPENFOAMDOC_START_TIME"
-      fi
       echo -e "\nLast progress update made at:\n\t$BUILD_AWOPENFOAM_UPDATE_TIME"
       echo "XXX"
 
@@ -1313,36 +1255,11 @@ function build_awopenfoam_progress_dialog()
       monitor_sleep $BUILD_AWOPENFOAM_PID 30
 
       if ! ps -p $BUILD_AWOPENFOAM_PID > /dev/null; then
-        if [ "x$BUILD_DOCUMENTATION" != "x" ]; then
-          if [ "x$BUILD_AWOPENFOAMDOC_START_TIME" == "x" ]; then
-            #first calculate estimate
-            percent=0
-            echo $percent
-            echo "XXX"
-            echo "Calculating estimate for documentation progress..."
-            echo "XXX"
-            BUILD_AWOPENFOAMDOC_FILECOUNT=`find * | grep -v "/lnInclude/" | grep -v "/t/" | grep -e "^src/" -e "^applications/utilities" -e "^applications/solvers" | grep -e ".H$" -e ".C$" | wc -l`
-            BUILD_AWOPENFOAMDOC_ESTIMCOUNT=`expr $BUILD_AWOPENFOAMDOC_FILECOUNT \* 385 / 100`
-            cd doc
-            echo "Now it's going to build the documentation..."
-            BUILD_AWOPENFOAMDOC_LOG="$WM_PROJECT_DIR/docmake.log"
-            BUILD_AWOPENFOAM_END_TIME=`date`
-            #launch wmake all asynchronously
-            bash -c "time wmake all > ${BUILD_AWOPENFOAMDOC_LOG} 2>&1" >> ${BUILD_AWOPENFOAMDOC_LOG} 2>&1 &
-            BUILD_AWOPENFOAM_PID=$!
-            BUILD_AWOPENFOAMDOC_START_TIME=`date`
-            BUILD_AWOPENFOAM_UPDATE_TIME=$BUILD_AWOPENFOAMDOC_START_TIME
-            cd ..
-          else
-            break;
-          fi
-        else
-          break;
-        fi
+        break;
       fi
     done
     ) | dialog --backtitle "OpenFOAM-1.6.x Installer for Ubuntu - code.google.com/p/openfoam-ubuntu" \
-        --title "Building OpenFOAM" --gauge "Starting..." 24 80 $percent
+        --title "Building OpenFOAM" --gauge "Starting..." 20 80 $percent
   fi
 
   #monitor here too, to wait for kill code, when issued
@@ -1407,12 +1324,122 @@ function allwmake_openfoam()
   echo "------------------------------------------------------"
   echo "Build OpenFOAM:"
   echo -e "Allwmake started to build at:\n\t$BUILD_AWOPENFOAM_START_TIME\n"
-  if [ "x$BUILD_AWOPENFOAMDOC_START_TIME" == "x" ]; then
-    echo -e "Allwmake finished at:\n\t`date`"
-  else
-    echo -e "Allwmake + Doxygen finished at:\n\t`date`"
-  fi
+  echo -e "Allwmake finished at:\n\t`date`"
   echo "------------------------------------------------------"
+}
+
+#provide the user with a progress bar and timings for building OpenFOAM
+function build_awopenfoam_docs_progress_dialog()
+{
+  if [ "x$BUILD_AWOPENFOAM_MUST_KILL" == "xYes" ]; then
+    echo -e "\n\nKill code issued... please wait..."
+    echo -e "NOTE: The kill code will take a few seconds to affect all child processes."
+    killgroup $BUILD_AWOPENFOAM_PID
+
+  else
+
+    ( #while true is used as a containment cycle...
+    while true;
+    do
+      if [ -e "$BUILD_AWOPENFOAMDOC_LOG" ]; then
+        BUILD_AWOPENFOAM_NOWCOUNT=`cat "$BUILD_AWOPENFOAMDOC_LOG" | grep -e "^Parsing file" -e "^Generating code for file" -e "^Generating docs for" -e "^Generating dependency graph for directory" | wc -l`
+        nowpercent=`expr $BUILD_AWOPENFOAM_NOWCOUNT \* 100 / $BUILD_AWOPENFOAMDOC_ESTIMCOUNT`
+      fi
+      
+      if [ "x$nowpercent" != "x$percent" ]; then
+        percent=$nowpercent
+        BUILD_AWOPENFOAM_UPDATE_TIME=`date`
+      fi
+
+      echo $percent
+      echo "XXX"
+      echo "Build OpenFOAM documentation:"
+      echo "The Doxygen build process is going to be logged in the file:"
+      echo "  $BUILD_AWOPENFOAMDOC_LOG"
+      echo "If you want to, you can follow the progress of this build"
+      echo "process, by opening a new terminal and running:"
+      echo "  tail -F $BUILD_AWOPENFOAMDOC_LOG"
+      echo "WARNING: THIS CAN TAKE HOURS..."
+      echo -e "Doxygen started to build OpenFOAM code documentation at:\n\t$BUILD_AWOPENFOAMDOC_START_TIME"
+      echo -e "\nLast progress update made at:\n\t$BUILD_AWOPENFOAM_UPDATE_TIME"
+      echo "XXX"
+
+      #this provides a better monitorization of the process itself... i.e., if it has already stopped!
+      #30 second update
+      monitor_sleep $BUILD_AWOPENFOAM_PID 30
+
+      if ! ps -p $BUILD_AWOPENFOAM_PID > /dev/null; then
+        break;
+      fi
+    done
+    ) | dialog --backtitle "OpenFOAM-1.6.x Installer for Ubuntu - code.google.com/p/openfoam-ubuntu" \
+        --title "Building OpenFOAM" --gauge "Starting..." 24 80 $percent
+  fi
+
+  #monitor here too, to wait for kill code, when issued
+  monitor_sleep $BUILD_AWOPENFOAM_PID 30
+}
+
+#this indicates to the user that we have it under control...
+function build_awopenfoam_docs_ctrl_c_triggered()
+{
+  BUILD_AWOPENFOAM_MUST_KILL="Yes"
+  build_awopenfoam_docs_progress_dialog
+}
+
+#do an Allwmake on OpenFOAM 1.6.x
+function allwmake_openfoam_docs()
+{
+  if [ "x$BUILD_DOCUMENTATION" != "x" ]; then
+
+    #set up environment, just in case we forget about it!
+    if [ "x$WM_PROJECT_DIR" == "x" ]; then
+      setOpenFOAMEnv
+    fi
+
+    cd $WM_PROJECT_DIR
+    BUILD_AWOPENFOAMDOC_LOG="$WM_PROJECT_DIR/docmake.log"
+
+    #set up traps...
+    trap build_awopenfoam_docs_ctrl_c_triggered SIGINT SIGQUIT SIGTERM
+
+    echo "------------------------------------------------------"
+    echo "Build OpenFOAM code documentation:"
+    echo "Calculating building estimates, please wait..."
+    #first calculate estimate
+    BUILD_AWOPENFOAMDOC_FILECOUNT=`find * | grep -v "/lnInclude/" | grep -v "/t/" | grep -e "^src/" -e "^applications/utilities" -e "^applications/solvers" | grep -e ".H$" -e ".C$" | wc -l`
+    BUILD_AWOPENFOAMDOC_ESTIMCOUNT=`expr $BUILD_AWOPENFOAMDOC_FILECOUNT \* 385 / 100`
+    echo "Now it's going to build the documentation..."
+
+    #launch wmake all asynchronously
+    cd doc
+    bash -c "time wmake all > ${BUILD_AWOPENFOAMDOC_LOG} 2>&1" >> ${BUILD_AWOPENFOAMDOC_LOG} 2>&1 &
+    BUILD_AWOPENFOAM_PID=$!
+    BUILD_AWOPENFOAMDOC_START_TIME=`date`
+    BUILD_AWOPENFOAM_UPDATE_TIME=$BUILD_AWOPENFOAMDOC_START_TIME
+    cd ..
+    echo "------------------------------------------------------"
+
+    #track build progress
+    percent=0
+    build_awopenfoam_docs_progress_dialog
+    
+    #wait for kill code to change
+    clear
+    if ! ps -p $BUILD_AWOPENFOAM_PID > /dev/null && [ "x$BUILD_AWOPENFOAM_MUST_KILL" != "x" ]; then
+      echo "Kill code issued with success. The script will continue execution."
+    fi
+
+    #clear traps
+    trap - SIGINT SIGQUIT SIGTERM
+
+    echo "------------------------------------------------------"
+    echo "Build OpenFOAM:"
+    echo -e "Doxygen started to build at:\n\t$BUILD_AWOPENFOAMDOC_START_TIME\n"
+    echo -e "Doxygen finished at:\n\t`date`"
+    echo "------------------------------------------------------"
+
+  fi
 }
 
 function continue_after_failed_openfoam()
@@ -1421,9 +1448,11 @@ function continue_after_failed_openfoam()
     FOAMINSTALLFAILED_BUTCONT="No"
     echo -e "\n------------------------------------------------------\n"
     echo "Although the previous step seems to have failed, do you wish to continue with the remaining steps?"
-    
-    if [ "x$BUILD_CCM26TOFOAM" == "xYes" -o "x$BUILD_PARAVIEW" == "xYes" -o "x$BUILD_QT" == "xYes" ]; then 
+
+    if [ "x$BUILD_DOCUMENTATION" != "x" -o "x$BUILD_CCM26TOFOAM" == "xYes" -o \
+         "x$BUILD_PARAVIEW" == "xYes" -o "x$BUILD_QT" == "xYes" ]; then 
       echo "Missing steps are:"
+      if [ "x$BUILD_DOCUMENTATION" != "x" ]; then echo "- Building OpenFOAM's code documentation"; fi
       if [ "x$BUILD_QT" == "xYes" ]; then echo "- Building Qt"; fi
       if [ "x$BUILD_PARAVIEW" == "xYes" ]; then echo "- Building ParaView"; fi
       if [ "x$BUILD_CCM26TOFOAM" == "xYes" ]; then echo "- Building ccm26ToFoam"; fi
@@ -1469,19 +1498,6 @@ function check_installation()
   echo "------------------------------------------------------"
   foamInstallationTest | tee foamIT.log
   echo -e "\n\nThis report has been saved in file $WM_PROJECT_DIR/foamIT.log"
-
-  #check paraview version
-  #PV writes version string to stderr...
-  paraview -V 2> pv.log
-  Paraview_VERSION="$(cat pv.log | awk -F'View' '{print $2}')"
-  rm pv.log
-  #include version variable in .bashrc so we can use this in paraFoamSys
-  if [ $Paraview_VERSION == "" ]; then
-      IFERRORSDETECTED="x"
-      echo -e "Paraview version could not be determined!"
-  else
-      echo "Paraview_VERSION=$Paraview_VERSION" >> $PATHOF/OpenFOAM-1.6.x/etc/bashrc
-  fi
 
   #if issues found then generate "bug report" and request that the user reports it!
   IFERRORSDETECTED=`cat foamIT.log | grep "Critical systems ok"`
@@ -1878,7 +1894,7 @@ function build_ParaView()
 
         #this will make links in ParaView's bin folder to the custom build of Qt's libraries
         hookup_Qt_Libs_with_ParaView
-        
+
         echo -e "ParaView started to build at:\n\t$BUILD_PARAVIEW_START_TIME\n"
         echo -e "Building ParaView finished successfully at:\n\t`date`"
         echo "ParaView server tools are ready to be used."
@@ -2062,10 +2078,11 @@ done
 while : ; do
   INSTALLMODE=$(dialog --stdout \
   --backtitle "OpenFOAM-1.6.x Installer for Ubuntu - code.google.com/p/openfoam-ubuntu"    \
-  --radiolist 'Choose the Install Mode: < default: fresh >' 10 50 3 \
-  'fresh' 'Make new Install' on  \
-  'update'   'Update currenty install'           off \
-  'server'    'ParaView with: -GUI +MPI'    off )
+  --radiolist 'Choose the Install Mode: < default: fresh >' 11 50 4 \
+  'fresh'   'Make new Install' on \
+  'update'   'Update currenty install'  off \
+  'server'   'ParaView with: -GUI +MPI'  off \
+  'custom'   'Use this only after installation'  off )
 
   if [ x"$?" == x"0" ]; then
     break;
@@ -2074,20 +2091,18 @@ while : ; do
   fi
 done
 
-if [ "x$INSTALLMODE" != "xupdate" ]; then
 
-  #Settings choosing Dialog
+if [ "x$INSTALLMODE" == "xcustom" ]; then
+
+  CUSTOMOPTS_OFOPTIONALS=No
+  CUSTOMOPTS_PARAVIEW=No
+
   while : ; do
-    SETTINGSOPTS=$(dialog --stdout --separate-output \
+    CUSTOMOPTS=$(dialog --stdout --separate-output \
     --backtitle "OpenFOAM-1.6.x Installer for Ubuntu - code.google.com/p/openfoam-ubuntu"         \
-    --checklist "Choose Install settings: < Space to select ! >" 15 50 5 \
-    1 "Do apt-get upgrade" off \
-    2 "Build OpenFOAM docs" off \
-    3 "Use startFoam alias" on \
-    4 "Use OpenFOAM gcc compiler" on \
-    5 "Build ccm26ToFoam" off \
-    6 "Install ParaView from repository" off \
-    7 "Download latest ParaView from Kitware" on )
+    --checklist "Build only parts, excluding OpenFOAM: < Space to select ! >" 15 65 2 \
+    1 "Build OpenFOAM optionals" off \
+    2 "Build ParaView with(out) Qt" off )
 
     if [ x"$?" == x"0" ]; then
       break;
@@ -2096,20 +2111,61 @@ if [ "x$INSTALLMODE" != "xupdate" ]; then
     fi
   done
 
-  #Take care of unpack settings from SETTINGSOPTS
+  #Take care of unpack settings from PVSETTINGSOPTS
+  for setting in $CUSTOMOPTS ; do
+    if [ $setting == 1 ] ; then CUSTOMOPTS_OFOPTIONALS=Yes ; fi
+    if [ $setting == 2 ] ; then CUSTOMOPTS_PARAVIEW=Yes ; fi
+  done
+
+  if [ "x$CUSTOMOPTS_OFOPTIONALS" == "xNo" -a "x$CUSTOMOPTS_PARAVIEW" == "xNo" ]; then
+    clear
+    echo "Nothing to do... exiting."
+    exit 0
+  fi
+
+elif [ "x$INSTALLMODE" != "xupdate" ]; then
+
+  CUSTOMOPTS_OFOPTIONALS=Yes
+  CUSTOMOPTS_PARAVIEW=Yes
+
+fi
+
+
+if [ "x$INSTALLMODE" != "xupdate" ]; then
+
   DOUPGRADE=No ; BUILD_DOCUMENTATION=
   USE_ALIAS_FOR_BASHRC=No ; USE_OF_GCC=No
   BUILD_CCM26TOFOAM=No
-  USE_REPO_PV=No ; USE_KITWARE_PV=No
-  for setting in $SETTINGSOPTS ; do
-    if [ $setting == 1 ] ; then DOUPGRADE=Yes ; fi
-    if [ $setting == 2 ] ; then BUILD_DOCUMENTATION=doc ; fi
-    if [ $setting == 3 ] ; then USE_ALIAS_FOR_BASHRC=Yes ; fi
-    if [ $setting == 4 ] ; then USE_OF_GCC=Yes ; fi
-    if [ $setting == 5 ] ; then BUILD_CCM26TOFOAM=Yes ; fi
-    if [ $setting == 6 ] ; then USE_REPO_PV=Yes ; fi
-    if [ $setting == 7 ] ; then USE_KITWARE_PV=Yes ; fi
-  done
+
+  if [ "x$CUSTOMOPTS_OFOPTIONALS" == "xYes" ]; then
+    #Settings choosing Dialog
+    while : ; do
+      SETTINGSOPTS=$(dialog --stdout --separate-output \
+      --backtitle "OpenFOAM-1.6.x Installer for Ubuntu - code.google.com/p/openfoam-ubuntu"         \
+      --checklist "Choose Install settings: < Space to select ! >" 15 50 5 \
+      1 "Do apt-get upgrade" off \
+      2 "Build OpenFOAM docs" off \
+      3 "Use startFoam alias" on \
+      4 "Use OpenFOAM gcc compiler" on \
+      5 "Build ccm26ToFoam" off )
+
+      if [ x"$?" == x"0" ]; then
+        break;
+      else
+        cancel_installer
+      fi
+    done
+
+    #Take care of unpack settings from SETTINGSOPTS
+    for setting in $SETTINGSOPTS ; do
+      if [ $setting == 1 ] ; then DOUPGRADE=Yes ; fi
+      if [ $setting == 2 ] ; then BUILD_DOCUMENTATION=doc ; fi
+      if [ $setting == 3 ] ; then USE_ALIAS_FOR_BASHRC=Yes ; fi
+      if [ $setting == 4 ] ; then USE_OF_GCC=Yes ; fi
+      if [ $setting == 5 ] ; then BUILD_CCM26TOFOAM=Yes ; fi
+    done
+  fi
+
   BUILD_QT=No
   BUILD_PARAVIEW=No
   BUILD_PARAVIEW_WITH_GUI=No
@@ -2117,16 +2173,13 @@ if [ "x$INSTALLMODE" != "xupdate" ]; then
   BUILD_PARAVIEW_WITH_PYTHON=No
   BUILD_PARAVIEW_WITH_OSMESA=No
 
-  #skip Paraview Build options if install from Repo or Kitware was selected
-  if [ "$USE_REPO_PV" == "Yes" or "$USE_KITWARE_PV" == "Yes"] ; then INSTALLMODE=custom ; fi
-
   #ParaView configurations for a fresh install
-  if [ "$INSTALLMODE" == "fresh" ]; then
+  if [ "x$INSTALLMODE" == "xfresh" -o "x$CUSTOMOPTS_PARAVIEW" == "xYes" ]; then
     while : ; do
       PVSETTINGSOPTS=$(dialog --stdout --separate-output \
       --backtitle "OpenFOAM-1.6.x Installer for Ubuntu - code.google.com/p/openfoam-ubuntu"         \
       --checklist "Choose ParaView settings: < Space to select ! >" 16 59 6 \
-      1 "Do custom build of QT 4.3.5 ?" off \
+      1 "Do custom build of Qt 4.3.5 ?" off \
       2 "Do custom build of ParaView ?" off \
       3 "Build ParaView with GUI ?" on \
       4 "Build ParaView with Python support ?" off \
@@ -2139,61 +2192,67 @@ if [ "x$INSTALLMODE" != "xupdate" ]; then
         cancel_installer
       fi
     done
+
+    #Take care of unpack settings from PVSETTINGSOPTS
+    for setting in $PVSETTINGSOPTS ; do
+      if [ $setting == 1 ] ; then BUILD_QT=Yes ; fi
+      if [ $setting == 2 ] ; then BUILD_PARAVIEW=Yes ; fi
+      if [ $setting == 3 ] ; then BUILD_PARAVIEW_WITH_GUI=Yes ; fi
+      if [ $setting == 4 ] ; then BUILD_PARAVIEW_WITH_PYTHON=Yes ; fi
+      if [ $setting == 5 ] ; then BUILD_PARAVIEW_WITH_MPI=Yes ; fi
+      if [ $setting == 6 ] ; then BUILD_PARAVIEW_WITH_OSMESA=Yes ; fi
+    done
   fi
 
-  #Take care of unpack settings from PVSETTINGSOPTS
-  for setting in $PVSETTINGSOPTS ; do
-    if [ $setting == 1 ] ; then BUILD_QT=Yes ; fi
-    if [ $setting == 2 ] ; then BUILD_PARAVIEW=Yes ; fi
-    if [ $setting == 3 ] ; then BUILD_PARAVIEW_WITH_GUI=Yes ; fi
-    if [ $setting == 4 ] ; then BUILD_PARAVIEW_WITH_PYTHON=Yes ; fi
-    if [ $setting == 5 ] ; then BUILD_PARAVIEW_WITH_MPI=Yes ; fi
-    if [ $setting == 6 ] ; then BUILD_PARAVIEW_WITH_OSMESA=Yes ; fi
-  done
 
-  if [ "$version" == "10.04" -a "x$BUILD_PARAVIEW" != "xYes" ]; then
-      BUILD_QT=Yes
-      BUILD_PARAVIEW=Yes
-      dialog --sleep 6 --backtitle "OpenFOAM-1.6.x Installer for Ubuntu - code.google.com/p/openfoam-ubuntu"   \
-      --title "Non-optional setting detected!" \
-      --infobox "You are running Ubuntu $version.\nFor ParaView to work properly this script must do a custom build of Qt, ParaView and PV3FoamReader" 5 70
-  fi
-  if [ "$version" == "8.04" ]; then
-    if [ "x$BUILD_PARAVIEW" != "Yes" -o "x$BUILD_QT" != "xYes" ]; then
-      BUILD_QT=Yes
-      BUILD_PARAVIEW=Yes
-      dialog --sleep 6 --backtitle "OpenFOAM-1.6.x Installer for Ubuntu - code.google.com/p/openfoam-ubuntu"   \
-      --title "Non-optional setting detected!" \
-      --infobox "You are running Ubuntu $version. \nFor ParaView to work properly this script must do a custom build of Qt and also build ParaView." 5 70
-    fi
-  fi
-  if [ "x$INSTALLMODE" == "xserver" ]; then
-      BUILD_PARAVIEW=Yes
-      BUILD_PARAVIEW_WITH_GUI=No
-      BUILD_PARAVIEW_WITH_MPI=Yes
-      dialog --sleep 6 --backtitle "OpenFOAM-1.6.x Installer for Ubuntu - code.google.com/p/openfoam-ubuntu"   \
-      --title "Server Install settings" \
-      --infobox "Installer in server install mode. \n ParaView will be build without GUI and with MPI support" 5 70  
-  fi
+  if [ "x$INSTALLMODE" != "xcustom" ]; then
 
-  #verifying ParaView Build options, just in case
-  if [ "x$BUILD_PARAVIEW" == "xNo" ]; then
-    if [ "x$BUILD_PARAVIEW_WITH_MPI" == "xYes" -o "x$BUILD_PARAVIEW_WITH_PYTHON" == "xYes" -o \
-        "x$BUILD_PARAVIEW_WITH_GUI" == "xNo" -o "x$BUILD_QT" == "xYes" ]; then
+    if [ "$version" == "10.04" -a "x$BUILD_PARAVIEW" != "xYes" ]; then
+        BUILD_QT=Yes
         BUILD_PARAVIEW=Yes
         dialog --sleep 6 --backtitle "OpenFOAM-1.6.x Installer for Ubuntu - code.google.com/p/openfoam-ubuntu"   \
         --title "Non-optional setting detected!" \
-        --infobox "\nParaView will need to be built, since the pre-built version isn't enough for the chosen options." 10 70
+        --infobox "You are running Ubuntu $version.\nFor ParaView to work properly this script must do a custom build of Qt, ParaView and PV3FoamReader" 5 70
     fi
+    if [ "$version" == "8.04" ]; then
+      if [ "x$BUILD_PARAVIEW" != "Yes" -o "x$BUILD_QT" != "xYes" ]; then
+        BUILD_QT=Yes
+        BUILD_PARAVIEW=Yes
+        dialog --sleep 6 --backtitle "OpenFOAM-1.6.x Installer for Ubuntu - code.google.com/p/openfoam-ubuntu"   \
+        --title "Non-optional setting detected!" \
+        --infobox "You are running Ubuntu $version. \nFor ParaView to work properly this script must do a custom build of Qt and also build ParaView." 5 70
+      fi
+    fi
+    if [ "x$INSTALLMODE" == "xserver" ]; then
+        BUILD_PARAVIEW=Yes
+        BUILD_PARAVIEW_WITH_GUI=No
+        BUILD_PARAVIEW_WITH_MPI=Yes
+        dialog --sleep 6 --backtitle "OpenFOAM-1.6.x Installer for Ubuntu - code.google.com/p/openfoam-ubuntu"   \
+        --title "Server Install settings" \
+        --infobox "Installer in server install mode. \n ParaView will be build without GUI and with MPI support" 5 70  
+    fi
+
+    #verifying ParaView Build options, just in case
+    if [ "x$BUILD_PARAVIEW" == "xNo" ]; then
+      if [ "x$BUILD_PARAVIEW_WITH_MPI" == "xYes" -o "x$BUILD_PARAVIEW_WITH_PYTHON" == "xYes" -o \
+          "x$BUILD_PARAVIEW_WITH_GUI" == "xNo" -o "x$BUILD_QT" == "xYes" ]; then
+          BUILD_PARAVIEW=Yes
+          dialog --sleep 6 --backtitle "OpenFOAM-1.6.x Installer for Ubuntu - code.google.com/p/openfoam-ubuntu"   \
+          --title "Non-optional setting detected!" \
+          --infobox "\nParaView will need to be built, since the pre-built version isn't enough for the chosen options." 10 70
+      fi
+    fi
+
+    if [ "x$BUILD_PARAVIEW" == "xYes" -a "x$BUILD_PARAVIEW_WITH_MPI" == "xNo" -a \
+        "x$BUILD_PARAVIEW_WITH_GUI" == "xNo" ]; then
+        BUILD_PARAVIEW_WITH_MPI=Yes
+        dialog --sleep 6 --backtitle "OpenFOAM-1.6.x Installer for Ubuntu - code.google.com/p/openfoam-ubuntu"   \
+        --title "Bad options detected!" \
+        --infobox "\nParaView must be built with either MPI or GUI. Since you've defined both Off, will assume server mode and turn on MPI." 10 70
+    fi
+
   fi
 
-  if [ "x$BUILD_PARAVIEW" == "xYes" -a "x$BUILD_PARAVIEW_WITH_MPI" == "xNo" -a \
-       "x$BUILD_PARAVIEW_WITH_GUI" == "xNo" ]; then
-      BUILD_PARAVIEW_WITH_MPI=Yes
-      dialog --sleep 6 --backtitle "OpenFOAM-1.6.x Installer for Ubuntu - code.google.com/p/openfoam-ubuntu"   \
-      --title "Bad options detected!" \
-      --infobox "\nParaView must be built with either MPI or GUI. Since you've defined both Off, will assume server mode and turn on MPI." 10 70
-  fi
 
   #GCC compiling settings
   if [ "x$USE_OF_GCC" == "xYes" ]; then
@@ -2371,11 +2430,15 @@ if [ "x$INSTALLMODE" != "xupdate" ]; then
   #process our timming log, in order to provide progress and estimated timings
   process_online_log_of_timings
 
-  #git clone OpenFOAM
-  OpenFOAM_git_clone
+  if [ "x$INSTALLMODE" != "xcustom" ]; then
 
-  #apply patches and fixes
-  apply_patches_fixes
+    #git clone OpenFOAM
+    OpenFOAM_git_clone
+
+    #apply patches and fixes
+    apply_patches_fixes
+
+  fi
 
   #Activate OpenFOAM environment
   setOpenFOAMEnv
@@ -2392,15 +2455,22 @@ if [ "x$INSTALLMODE" != "xupdate" ]; then
   #This part can't go on without gcc...
   if [ "x$BUILD_GCC_FAILED" != "xYes" ]; then
 
-    #do an Allwmake on OpenFOAM 1.6.x
-    allwmake_openfoam
+    if [ "x$INSTALLMODE" != "xcustom" ]; then
 
-    #check if the installation is complete
-    check_installation
+      #do an Allwmake on OpenFOAM 1.6.x
+      allwmake_openfoam
+      
+      #check if the installation is complete
+      check_installation
+
+    fi
 
     #Continue with the next steps, only if it's OK to continue!
     if [ "x$FOAMINSTALLFAILED" == "x" -o "x$FOAMINSTALLFAILED_BUTCONT" == "xYes" ]; then
       
+      #build Doxygen documentation of the code
+      allwmake_openfoam_docs
+
       #build Qt
       build_Qt
       

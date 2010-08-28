@@ -1,0 +1,75 @@
+*Tasks to do in the code for 1.6.x*:
+
+  1. integrate/adapt the changes made by Anton into the release version of
+  the script; <- done
+  2. modify the "*versionning* mechanism" that is tightly coupled to Ubuntu
+  versions into an abstract mechanism, i.e., define variables by generations,
+  not Ubuntu versions;
+  3. create a new function that detects what Linux box it's running on.
+  Returns "Unknown" if not detected.
+  4. Now with "Ubuntu" and "Unknown" options, put code that is "Ubuntu
+  only" in one module script and copy-paste-change those same functions into 
+  another module script for the "Unknown Linux" option.
+  5. The unknown option will rely on user input to provide an additional
+  on what generation the Linux box or with which Linux distro is it similar
+  to. Either way, it will only provide hints on what packages should be
+  installed in the Linux box.
+  6. NOTE: if there are things that are Distro dependent and also
+  OpenFOAM version dependent, then we can create even more module scripts.
+  Hopefully this won't be necessary, but it could happen. So, in other words,
+  do something like this on the Ubuntu module script (haven't made a code
+  check on this ;) ):
+    if [ "$OFversion" == "1.6.x" ]; then
+      do_wget_module "ubuntu_of16x"
+      import_module "ubuntu_of16x"
+    else
+      do_wget_module "ubuntu_of17x"
+      import_module "ubuntu_of17x"
+    fi
+
+
+   2. add "use System OpenMPI" option;
+   3. improve the dialog system:
+      1. to include the custom options in a less *wreck-less* way;
+      2. strictly separate options that are client side from server side
+      installations (like OSMesa in ParaView);
+   4. provide a summary of items that failed to build at the end of the
+   installation;
+   5. move all building logs into a single folder, i.e.,
+   "$PATHOF/BuildLogs";
+   6. make a nice little package with the related failed items logs, for the
+   user to post online;
+   7. add option to install Discretizer into the script; <- postponed
+   8. finally, move/copy the script (and dependents) into the new repo (in a
+   dedicated folder please!) and change the path to the repo in the new copy
+   (variable OPENFOAM_UBUNTU_SCRIPT_REPO).
+
+   2. find common and different items between scripts 1.6.x and 1.7.x:
+      1. create a base script for launching the installation process, with
+      the common functions between 1.6.x and 1.7.x and a GUI entry for picking the
+      version;
+      2. create two modular scripts (with functions and variable definitions
+      only) that have the functions that are different between 1.6.x and 1.7.x.
+   4. initiate process to *modularize* even further:
+      5. start adding other distros!
+
+*Tasks to do in the code for 1.7.x*:
+
+   1. fork/branch (into a different folder) from the script in 1.6.x, in
+   order to primarily make a working script for 1.7.x;
+   2. make the script work with OpenFOAM 1.7.x:
+      1. about 50% of the patches made for OpenFOAM 1.6.x are no longer
+      usable in OpenFOAM 1.7.x, so fixing/removing them is a task;
+      2. no longer exists an option to neither build nor use OpenFOAM gcc;
+      3. have to figure out with which versions of Qt does ParaView 3.8.0
+      build and work well!
+
+
+Tasks yet to do in the documentation:
+
+   - translating the FAQ in Portuguese to English;
+   - adding FAQ entries that are still left unanswered;
+   - create a simple tutorial on how to use the script (i.e., use the
+   default/most used options);
+   - create a more detailed tutorial, explaining the *repercussions* of each
+   option :) . 
