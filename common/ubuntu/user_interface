@@ -1,0 +1,11 @@
+#!/bin/bash
+
+#-- USER INTERFACE FUNCTIONS ------------------------------------------------------
+#list of functions herein:
+
+#global variables used by this script:
+#   INST_SYSTEM - System variant for installation - defined in the master script
+
+#Code -----------------------------------------
+#echo "Sourcing User Interface functions for Ubuntu..."
+

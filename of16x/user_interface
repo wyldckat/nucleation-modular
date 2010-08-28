@@ -1,0 +1,106 @@
+#!/bin/bash
+
+#-- USER INTERFACE FUNCTIONS ------------------------------------------------------
+#list of functions herein:
+#    gcc_related_options()
+#    check_options_sanity()
+
+#global variables used by this script:
+#   INST_SYSTEM - System variant for installation - defined in the master script
+
+#Code -----------------------------------------
+echo "Sourcing User Interface functions for OpenFOAM 1.6.x..."
+
+#source system related script
+if [ "x$SYSTEM_VERSION" != "x" -a "x${SCRIPT_WORKFOLDER}" != "x" ]; then
+  . ${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/${SYSTEM_VERSION}/user_interface
+else
+  echo "The variable SYSTEM_VERSION and/or SCRIPT_WORKFOLDER is/are empty and they are crucial to exist! Aborting execution."
+  exit 1
+fi
+
+
+#Check the sanity of the options
+function check_options_sanity()
+{
+  #Check the sanity of the options, depending on the target system
+  check_options_sanity_for_system
+  
+  if [ "x$INSTALLMODE" != "xcustom" ]; then
+
+    if [ "x$INSTALLMODE" == "xserver" ]; then
+        BUILD_PARAVIEW=Yes
+        BUILD_PARAVIEW_WITH_GUI=No
+        BUILD_PARAVIEW_WITH_MPI=Yes
+        dialog --sleep 6 --backtitle "$GUI_BACKTITLE"   \
+        --title "Server Install settings" \
+        --infobox "Installer in server install mode. \n ParaView will be build without GUI and with MPI support" 5 70  
+    fi
+
+    #verifying ParaView Build options, just in case
+    if [ "x$BUILD_PARAVIEW" == "xNo" ]; then
+      if [ "x$BUILD_PARAVIEW_WITH_MPI" == "xYes" -o "x$BUILD_PARAVIEW_WITH_PYTHON" == "xYes" -o \
+          "x$BUILD_PARAVIEW_WITH_GUI" == "xNo" -o "x$BUILD_QT" == "xYes" ]; then
+          BUILD_PARAVIEW=Yes
+          dialog --sleep 6 --backtitle "$GUI_BACKTITLE"   \
+          --title "Non-optional setting detected!" \
+          --infobox "\nParaView will need to be built, since the pre-built version isn't enough for the chosen options." 10 70
+      fi
+    fi
+
+    if [ "x$BUILD_PARAVIEW" == "xYes" -a "x$BUILD_PARAVIEW_WITH_MPI" == "xNo" -a \
+        "x$BUILD_PARAVIEW_WITH_GUI" == "xNo" ]; then
+        BUILD_PARAVIEW_WITH_MPI=Yes
+        dialog --sleep 6 --backtitle "$GUI_BACKTITLE"   \
+        --title "Bad options detected!" \
+        --infobox "\nParaView must be built with either MPI or GUI. Since you've defined both Off, will assume server mode and turn on MPI." 10 70
+    fi
+
+  fi
+}
+
+#GCC compiling settings
+function gcc_related_options()
+{
+
+  if [ "x$USE_OF_GCC" == "xYes" ]; then
+    if [ "$arch" == "x64" ]; then
+      while : ; do
+        GCCSETTINGSOPTS=$(dialog --stdout --separate-output \
+        --backtitle "$GUI_BACKTITLE"         \
+        --checklist "Choose Install settings: < Space to select ! >" 10 60 2 \
+        1 "Build GCC? (otherwise use pre-compiled version)" off \
+        2 "Build GCC in 64bit mode only?" off )
+        
+        if [ x"$?" == x"0" ]; then
+          break;
+        else
+          cancel_installer
+        fi
+      done
+
+    elif [ "$arch" == "x86" ]; then
+      while : ; do  
+        GCCSETTINGSOPTS=$(dialog --stdout --separate-output \
+        --backtitle "$GUI_BACKTITLE"         \
+        --checklist "Choose Install settings: < Space to select ! >" 10 60 1 \
+        1 "Build GCC? (otherwise use pre-compiled version)" off )
+        
+        if [ x"$?" == x"0" ]; then
+          break;
+        else
+          cancel_installer
+        fi
+      done
+    fi
+
+    BUILD_GCC=No
+    BUILD_GCC_STRICT_64BIT=No #this is optionable for x86_64 only
+    #Take care of unpack
+    for setting in $GCCSETTINGSOPTS ; do
+      if [ $setting == 1 ] ; then BUILD_GCC=Yes ; fi
+      if [ $setting == 2 ] ; then BUILD_GCC_STRICT_64BIT=Yes ; fi
+    done
+  fi
+
+}

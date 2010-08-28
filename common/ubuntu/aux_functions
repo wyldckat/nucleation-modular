@@ -1,0 +1,30 @@
+#!/bin/bash
+
+#-- UTILITY FUNCTIONS For Ubuntu ------------------------------------------------------
+#list of functions herein:
+#   ispackage_installed()
+
+#global variables used by this script:
+
+
+#Code -----------------------------------------
+echo "Sourcing Ubuntu Related Auxiliary functions..."
+
+
+#FUNCTIONS ------------------------------------------------------------------------------
+
+#is package installed
+#usage: ispackage_installed package_name
+function ispackage_installed()
+{
+  set +e
+  DPKGRESULTTMP=`dpkg-query -W -f='${Status}\n' $1 2>&1 | grep -e "not-installed" -e "No packages found" -e "deinstall"`
+  if [ "x$DPKGRESULTTMP" == "x" ]; then
+    return 0
+  else
+    return 1
+  fi
+  unset DPKGRESULTTMP
+  set -e
+}
+

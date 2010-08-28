@@ -1,0 +1,7 @@
+#!/bin/bash
+
+#This script is for packing, commiting and pushing changes into the repo.
+#It isn't meant to be part of the installer itself.
+tar -czf installOF.tar.gz common of16x of17x LICENSE && \
+hg commit && \
+hg push

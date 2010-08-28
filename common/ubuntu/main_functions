@@ -1,0 +1,174 @@
+#!/bin/bash
+
+#-- MAIN FUNCTIONS ------------------------------------------------------
+#list of functions herein:
+#    ask_for_sudo_policy()
+#    install_dialog_package()
+
+#global variables used by this script:
+
+
+#Code -----------------------------------------
+echo "Sourcing Main functions for Ubuntu ..."
+
+#FUNCTIONS ------------------------------------------------------------------------------
+
+#setup sudo policy for this script
+#REASON: not always does the user have superuser powers, or maybe the user doesn't fully trust us. 
+#Either way, using sudo whithin the script could be a security hazard waiting to happen :(
+function ask_for_sudo_policy()
+{
+  echo '-----------------------------------------------------------'
+  echo '      Welcome to the OpenFOAM Installer for Ubuntu  '
+  echo ' '
+  echo '  Before starting this script, it is necessary to define'
+  echo 'what policy should be used by this script, when installing'
+  echo 'new packages in Ubuntu. More specifically, superuser access'
+  echo 'will be required for installing packages, by calling the '
+  echo 'command "sudo".'
+  echo '  If you have superuser permissions and trust this script '
+  echo 'to use the sudo command, then type yes then hit return. '
+  echo -e 'Otherwise, type no:'
+  echo "(yes or no): "
+  read casestat;
+  case $casestat in
+    yes | y | Y | Yes | YES) SHOW_SUDO_COMMANDS_ONLY="";;
+    no | n | N | No | NO) SHOW_SUDO_COMMANDS_ONLY="YES";;
+  esac
+  echo "------------------------------------------------------"
+}
+
+#install dialog or abort if not possible
+function install_dialog_package()
+{
+  if ! ispackage_installed dialog; then
+    #if permission granted
+    if [ "x$SHOW_SUDO_COMMANDS_ONLY" != "xYES" ]; then
+      #tell the user that dialog has to be installed, and request permission to install it
+      echo 'This script needs the package "dialog" to be installed. It will execute the command:'
+      echo '      sudo apt-get install dialog'
+      echo 'which will (or should) request for your sudo password...'
+      sudo apt-get install -q=2 dialog
+    else
+      #tell the user that dialog has to be installed, and request permission to install it
+      echo 'This script needs the package "dialog" to be installed. Please execute the following command:'
+      echo '      sudo apt-get install dialog'
+      echo ' '
+      echo 'Please open a new terminal and execute the command above.'
+      echo 'If you do not have superuser powers to run the "sudo" command, then please request your system administrator to run the command above.'
+      echo ' '
+      echo 'When the installation is complete, please press enter to continue this script.'
+      echo 'If you don''t want to install it now, press Ctrl+C.'
+      read aaa_tmp_var
+      unset aaa_tmp_var
+    fi
+  fi
+
+  #confirm it's installed
+  if ! ispackage_installed dialog; then
+    echo "The package dialog isn't installed. Aborting script."
+    exit 1
+  fi
+}
+
+#install packages in Ubuntu
+function install_packages()
+{
+  #define which packages need to be installed
+  PACKAGES_TO_INSTALL="w3m pv binutils-dev flex bison git-core build-essential python-dev libreadline5-dev wget zlib1g-dev cmake"
+
+  #for Ubuntu 8.04, a few more packages are needed
+  if isleftlarger_or_equal 8.10 $SYSTEM_VERSION; then
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL curl"
+  fi
+  
+  #for Ubuntu 9.10 and 10.04, a few more packages are needed
+  if isleftlarger_or_equal $SYSTEM_VERSION 9.10; then
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libpng12-dev libxt-dev libxi-dev libxrender-dev libxrandr-dev libxcursor-dev libxinerama-dev libfreetype6-dev libfontconfig1-dev libglib2.0-dev"
+    if [ "x$BUILD_PARAVIEW" == "xYes" ]; then
+      PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL freeglut3-dev"
+    fi
+  fi
+
+  #for documentation, these are necessary
+  if [ "x$BUILD_DOCUMENTATION" == "xdoc" ]; then
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL doxygen graphviz"
+  fi
+
+  #for building gcc, these are necessary
+  if [ "x$BUILD_GCC" == "xYes" ]; then
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL texinfo byacc"
+  fi
+
+  if [ "$arch" == "x64" ]; then
+    if [ "x$BUILD_GCC_STRICT_64BIT" != "xYes" -o "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
+      PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL ia32-libs"
+    fi
+  fi
+
+  #install qt4-dev and qt4-dev-tools only if the custom build isn't used
+  if [ "x$BUILD_QT" != "xYes" ]; then
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libqt4-dev qt4-dev-tools"
+  fi
+  
+  #install OSMesa when chosen for ParaView
+  if [ "x$BUILD_PARAVIEW_WITH_OSMESA" == "xYes" ]; then
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libosmesa6 libosmesa6-dev"
+  fi
+
+  #now remove the ones that are already installed
+  prune_packages_to_install
+  
+  #only show commands for installation if any packages are missing!
+  if [ "x$PACKAGES_TO_INSTALL" != "x" ]; then
+
+    #if permission granted
+    if [ "x$SHOW_SUDO_COMMANDS_ONLY" != "xYES" ]; then
+
+      echo 'The command "sudo apt-get update -y -q=1" is now going to be executed. Please provide sudo password if it asks you.'
+      sudo apt-get update -y -q=1
+      if [ "x$DOUPGRADE" == "xYes" ]; then
+        echo 'The command "sudo apt-get upgrade -y" is now going to be executed.'
+        sudo apt-get upgrade -y
+      fi
+      
+      echo 'The command:'
+      echo "    sudo apt-get install -y -q=1 $PACKAGES_TO_INSTALL"
+      echo 'is now going to be executed.'
+      sudo apt-get install -y -q=1 $PACKAGES_TO_INSTALL
+      
+    else
+
+      echo 'Please run the following commands in another terminal or ask your system''s administrator to run them:'
+      echo '    sudo apt-get update -y -q=1'
+      if [ "x$DOUPGRADE" == "xYes" ]; then
+        echo '    sudo apt-get upgrade -y'
+      fi
+      echo "    sudo apt-get install -y -q=1 $PACKAGES_TO_INSTALL"
+      echo ' '
+      echo 'When the installation is complete, please press enter to continue this script.'
+      echo 'If you don''t want to install it now, press Ctrl+C.'
+      read aaa_tmp_var
+      unset aaa_tmp_var
+
+    fi
+
+  fi
+  
+  #now remove the ones that are already installed again, to confirm that all have been installed!
+  prune_packages_to_install
+  if [ "x$PACKAGES_TO_INSTALL" != "x" ]; then
+    echo -e "\n\nWARNING: The following packages aren't installed:"
+    echo "  $PACKAGES_TO_INSTALL"
+    echo -e "\nDo you want to try and continue the OpenFOAM installation? (yes or no): "
+    read casestat;
+    case $casestat in
+      no | n | N | No | NO)
+        echo "Installation aborted."
+        set +e
+        exit 1
+        ;;
+    esac
+  fi  
+}
+

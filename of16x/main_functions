@@ -1,0 +1,309 @@
+#!/bin/bash
+
+#-- MAIN FUNCTIONS ------------------------------------------------------
+#list of functions herein:
+
+#global variables used by this script:
+
+
+#Code -----------------------------------------
+echo "Sourcing Main functions for OpenFOAM 1.6.x ..."
+
+#FUNCTIONS ------------------------------------------------------------------------------
+
+#Defining packages and servers to download from
+function define_packages_to_download()
+{
+  
+  #OpenFOAM's sourceforge repository
+  OPENFOAM_SOURCEFORGE="http://downloads.sourceforge.net/foam/"
+  SOURCEFORGE_URL_OPTIONS="?use_mirror=$mirror"
+  
+  #Third Party files to download
+  THIRDPARTY_GENERAL="ThirdParty-1.6.General.gtgz"
+  if [ "$arch" == "x64" ]; then
+    THIRDPARTY_BIN="ThirdParty-1.6.linux64Gcc.gtgz"
+    
+    if isleftlarger_or_equal 8.04 $SYSTEM_VERSION || isleftlarger_or_equal $SYSTEM_VERSION 10.04; then
+      THIRDPARTY_BIN_CMAKE="ThirdParty-1.6.linuxGcc.gtgz"
+    fi
+  elif [ "$arch" == "x86" ]; then
+    THIRDPARTY_BIN="ThirdParty-1.6.linuxGcc.gtgz"
+  fi
+  
+  #patch file for MPFR for gcc 4.3.3 to build properly
+  MPFRPATCHFILE="patchMPFR"
+  
+  #modified makeGcc for building gcc that comes with OpenFOAM
+  GCCMODED_MAKESCRIPT="makeGcc433"
+  
+  #patch file for tweaking timing option into wmake
+  WMAKEPATCHFILE="patchWmake"
+
+  #file with md5 sums for OpenFOAM 1.6 files
+  OPENFOAMMD5SUMSFILE="OFpackages.md5"
+
+  if [ "x$BUILD_QT" == "xYes" ]; then
+    QT_VERSION=4.3.5
+    QT_BASEURL="ftp://ftp.trolltech.com/qt/source/"
+    QT_PACKAGEFILE="qt-x11-opensource-src-$QT_VERSION.tar.bz2"
+  fi
+  
+  if [ "x$BUILD_CCM26TOFOAM" == "xYes" ]; then
+    CCMIO_PACKAGE_VERSION=libccmio-2.6.1
+    CCMIO_PACKAGE="${CCMIO_PACKAGE_VERSION}.tar.gz"
+    CCMIO_BASEURL="https://wci.llnl.gov/codes/visit/3rd_party/"
+    CCMIO_BASEURL_EXTRA_PRE="--no-check-certificate"
+    CCMIO_MAKEFILES_FILES="files.AllwmakeLibccmio"
+    CCMIO_MAKEFILES_OPTIONS="options.AllwmakeLibccmio"
+  fi
+}
+
+#Download necessary files
+function download_files()
+{
+  cd_openfoam #this is a precautionary measure
+
+  #download patch files that didn't fit in this script
+  do_wget "$SCRIPT_REPO" "$MPFRPATCHFILE"
+  do_wget "$SCRIPT_REPO" "$GCCMODED_MAKESCRIPT"
+  do_wget "$SCRIPT_REPO" "$WMAKEPATCHFILE"
+  do_wget "$SCRIPT_REPO" "$OPENFOAMMD5SUMSFILE"
+
+  #generate md5 sums for "md5sum -check"ing :)
+  #No longer needed since OpenFOAM 1.7 was released...
+  ##get_md5sums_for_OFpackages
+
+  #Download Third Party files for detected system and selected mirror
+  #download Third Party sources
+  do_wget_md5sum "$OPENFOAM_SOURCEFORGE" "$THIRDPARTY_GENERAL" "$SOURCEFORGE_URL_OPTIONS" OFpackages.md5
+
+  #download Third Party binaries, but only if requested and necessary!
+  if [ "x$THIRDPARTY_BIN" != "x" ]; then
+    do_wget_md5sum "$OPENFOAM_SOURCEFORGE" "$THIRDPARTY_BIN" "$SOURCEFORGE_URL_OPTIONS" OFpackages.md5
+  fi
+  
+  if [ "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
+    do_wget_md5sum "$OPENFOAM_SOURCEFORGE" "$THIRDPARTY_BIN_CMAKE" "$SOURCEFORGE_URL_OPTIONS" OFpackages.md5
+  fi
+
+  if [ "x$BUILD_QT" == "xYes" ]; then
+    do_wget "$QT_BASEURL" "$QT_PACKAGEFILE"
+  fi
+
+  if [ "x$BUILD_CCM26TOFOAM" == "xYes" ]; then
+    do_wget "$CCMIO_BASEURL" "$CCMIO_PACKAGE" " " "$CCMIO_BASEURL_EXTRA_PRE"
+    do_wget "$SCRIPT_REPO" "$CCMIO_MAKEFILES_FILES"
+    do_wget "$SCRIPT_REPO" "$CCMIO_MAKEFILES_OPTIONS"
+  fi
+}
+
+#Unpack downloaded files
+function unpack_downloaded_files()
+{
+  cd_openfoam #this is a precautionary measure
+
+  echo "------------------------------------------------------"
+  echo "Untar files -- This can take time"
+  if [ "x$INSTALLMODE" != "xcustom" ]; then 
+    echo "Untaring $THIRDPARTY_GENERAL"
+    #TODO: option "-n" in "pv" will allow the usage of "dialog --gauge" :)
+    pv $THIRDPARTY_GENERAL | tar -xz
+  fi
+
+  #check if $THIRDPARTY_BIN is provided, because one could want to build from sources
+  #TODO: in custom mode, it doesn't unpack because the only situation where it could be necessary is if 
+  #      the pre-built ParaView is required back again... and such option doesn't explicitly exist.
+  if [ "x$THIRDPARTY_BIN" != "x" -a "x$INSTALLMODE" != "xcustom" ]; then 
+    cd_openfoam
+    echo "Untaring $THIRDPARTY_BIN"
+    pv $THIRDPARTY_BIN | tar -xz
+  fi
+  
+  #needed for Ubuntu 8.04 and 10.04 x86_64
+  if [ "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then 
+    cd_openfoam
+    echo "Untaring $THIRDPARTY_BIN_CMAKE"
+    pv $THIRDPARTY_BIN_CMAKE | tar -xz ThirdParty-1.6/cmake-2.6.4
+    cd ThirdParty-1.6/cmake-2.6.4/platforms/
+    #this is necessary, since there isn't a pre-build made for 64bit
+    ln -s linux linux64
+  fi
+  
+  if [ "x$BUILD_QT" == "xYes" ]; then
+    cd_openfoam
+    cd ThirdParty-1.6
+    echo "Untaring $QT_PACKAGEFILE"
+    pv ../$QT_PACKAGEFILE | tar xj 
+  fi
+
+  if [ "x$BUILD_CCM26TOFOAM" == "xYes" ]; then
+    cd_openfoam
+    cd ThirdParty-1.6
+    ln -s ../$CCMIO_PACKAGE $CCMIO_PACKAGE
+    #NOTE: unpacking will be done by the AllwmakeLibccmio script
+    if [ -e "../$CCMIO_MAKEFILES_FILES" -a -e "../$CCMIO_MAKEFILES_OPTIONS" ]; then
+      if [ ! -d "wmakeFiles/libccmio/Make" ]; then
+        mkdir -p wmakeFiles/libccmio/Make
+      fi
+      cp "../$CCMIO_MAKEFILES_FILES" wmakeFiles/libccmio/Make/files
+      cp "../$CCMIO_MAKEFILES_OPTIONS" wmakeFiles/libccmio/Make/options
+    fi
+  fi
+
+  #copy modified makeGcc to here
+  if [ "x$GCCMODED_MAKESCRIPT" != "x" ]; then
+    cd_openfoam
+    cd ThirdParty-1.6
+    cp ../$GCCMODED_MAKESCRIPT .
+    chmod +x $GCCMODED_MAKESCRIPT
+  fi
+  echo "------------------------------------------------------"
+}
+
+function process_online_log_of_timings()
+{
+  #TODO: this value is hard coded for now, since it should come from the output of our timings script
+  #The total count of "make[.]" found in our build_Qt.log
+  BUILD_QT_LAST_BUILD_COUNT=293
+
+  #TODO: this value is hard coded for now, since it should come from the output of our timings script
+  #The total count of "make[.]" found in our build_gcc.log
+  BUILD_GCC_LAST_BUILD_COUNT=556
+  
+  #NOTES: ParaView has its own percentage, so we just lift from it
+  #NOTES: OpenFOAM uses wmake, making it relatively easier to estimate automatically, 
+  #thus automatically adapting to new additions in the git repository
+}
+
+#git clone OpenFOAM
+function OpenFOAM_git_clone()
+{
+  cd_openfoam #this is a precautionary measure
+
+  echo "------------------------------------------------------"
+  echo "Retrieving OpenFOAM 1.6.x from git..."
+  echo "------------------------------------------------------"
+  #redo the link if necessary
+  if [ -L "$PATHOF/ThirdParty-1.6.x" ]; then
+    unlink "$PATHOF/ThirdParty-1.6.x"
+  fi
+  ln -s "$PATHOF/ThirdParty-1.6" "$PATHOF/ThirdParty-1.6.x"
+  git clone http://repo.or.cz/r/OpenFOAM-1.6.x.git
+  OpenFOAM_git_error=$?
+  
+  continue_after_failed_openfoam_git
+}
+
+
+function link_gcc433_libraries_to_system()
+{
+  #Define which folder to fix libraries
+  if [ "$SYSTEM_VERSION" != "8.04" ]; then
+    if [ "$arch" == "x64" ]; then
+      LIBRARY_PATH_TO_FIX=${PATHOF}/ThirdParty-1.6/gcc-4.3.3/platforms/linux64/lib64
+    elif [ "$arch" == "x86" ]; then
+      LIBRARY_PATH_TO_FIX=${PATHOF}/ThirdParty-1.6/gcc-4.3.3/platforms/linux/lib
+    fi
+  fi
+
+  echo "-----------------------------------------------------"
+  echo "Fixing library links"
+  cd $LIBRARY_PATH_TO_FIX
+  mv libstdc++.so.6 libstdc++.so.6.orig
+  ln -s `locate libstdc++.so.6.0 | grep "^/usr/lib" | head -n 1` libstdc++.so.6
+  mv libgcc_s.so.1 libgcc_s.so.1.orig
+  ln -s `locate libgcc_s.so. | grep "^/lib" | head -n 1` libgcc_s.so.1
+  echo "Fix up done"
+  echo "------------------------------------------------------"
+}
+
+
+#apply patches and fixes
+function apply_patches_fixes()
+{
+  cd_openfoam #this is a precautionary measure
+
+  #FIXES ------
+  
+  #fix links to proper libraries for gcc, as long as the OpenFOAM's precompiled version is used
+  if isleftlarger_or_equal $SYSTEM_VERSION 9.10 && [ "x$USE_OF_GCC" == "xYes" ]; then
+    link_gcc433_libraries_to_system
+  fi
+  
+  #fix ParaView's help file reference, for when ParaView isn't built
+  if [ "x$BUILD_PARAVIEW" != "xYes" ]; then
+    cd_openfoam
+    if [ "$arch" == "x86" ]; then
+      cd ThirdParty-1.6/paraview-3.6.1/platforms/linuxGcc/bin
+    elif [ "$arch" == "x64" ]; then
+      cd ThirdParty-1.6/paraview-3.6.1/platforms/linux64Gcc/bin
+    fi
+    mv pqClientDocFinder.txt pqClientDocFinder_orig.txt
+    cat pqClientDocFinder_orig.txt | sed -e 's=/home/dm2/henry/OpenFOAM='${PATHOF}'=' > ./pqClientDocFinder.txt
+  fi
+
+  cd_openfoam #this is a precautionary measure
+
+  #PATCHES ----
+  #Apply patches from defined functions
+  echo "------------------------------------------------------"
+  echo "Applying patches to bashrc and settings.sh ..."
+  echo "------------------------------------------------------"
+  if [ "x$HOME/OpenFOAM" != "x$PATHOF" ]; then #fix OpenFOAM base path in bashrc
+    patchBashrcPath
+  fi
+  patchBashrcMultiCore #for faster builds on multi-core machines
+  #proper fix for running in 32bit
+  if [ "$arch" == "x86" ]; then
+    patchBashrcTo32
+  fi
+  #Fix for using the system's compiler
+  if [ "x$USE_OF_GCC" == "xNo" ]; then
+    patchSettingsToSystemCompiler
+  fi #for using the system's compiler
+  
+  #apply patch for paraFoam, for when the running language 
+  #isn't the standard english!
+  issystem_english
+  if [ x"$?" != x"1" ]; then
+    patchParaFoamScript
+  fi
+  
+  #apply patches for wmake script, MPFR library, makeQt script, makeParaView script and libccmio
+  patchWmakeForTimings
+  patchMPFRMissingFiles
+  patchMakeQtScript
+  patchMakeParaViewScript
+  patchAllwmakeLibccmioScript
+}
+
+#Activate OpenFOAM environment
+function setOpenFOAMEnv()
+{
+  cd_openfoam
+  echo "------------------------------------------------------"
+  echo "Activate OpenFOAM environment"
+  echo "------------------------------------------------------"
+  cd OpenFOAM-1.6.x/
+  . $PATHOF/OpenFOAM-1.6.x/etc/bashrc 
+}
+
+#Add OpenFOAM's bashrc entry in $PATHOF/.bashrc
+function add_openfoam_to_bashrc()
+{
+  echo "------------------------------------------------------"
+  echo "Add OpenFOAM's bashrc entry in $PATHOF/.bashrc"
+  echo "------------------------------------------------------"
+
+  #nuke ~/.bashrc entries that have references to the same script
+  cat ~/.bashrc | grep -v "$PATHOF/OpenFOAM-1.6.x/etc/bashrc" > ~/.bashrc.new
+  cp ~/.bashrc ~/.bashrc.old
+  mv ~/.bashrc.new ~/.bashrc
+  if [ "x$USE_ALIAS_FOR_BASHRC" == "xYes" ]; then
+    echo -e "alias startFoam=\". $PATHOF/OpenFOAM-1.6.x/etc/bashrc\"" >> ~/.bashrc
+  else
+    echo ". $PATHOF/OpenFOAM-1.6.x/etc/bashrc" >> ~/.bashrc
+  fi
+}
+

@@ -1,12 +1,35 @@
-Tasks to do:
-
+Done:
   - integrate/adapt the changes made by Anton into the release version of
-  the script; <- done
+  the script;
   - make architecture identification abstract:
     - i?86 -> x86
     - x86_64 -> x64
+
+
+Tasks to do:
+  - systems contemplated for now (variable INST_SYSTEM):
+      ubuntu
+      generic
+    
+    - SYSTEM_VERSION - here is kept the system's version
+    
+    - files and folders in the base folders will have same scripts of the 
+      same name in the folders $INST_SYSTEM:
+        common
+          aux_functions
+        common/$INST_SYSTEM
+          aux_functions
+        of16x
+          patches
+        of16x/$INST_SYSTEM
+          patches
+          
+
+
   - ceate a list of system dependent functions and respective variables:
     - variables:
+        version
+      
     - functions:
   - modify the "*versionning* mechanism" that is tightly coupled to Ubuntu
   versions into an abstract mechanism, i.e., define variables by generations,
