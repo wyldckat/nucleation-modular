@@ -1,20 +1,26 @@
-*Tasks to do in the code for 1.6.x*:
+Tasks to do:
 
-  1. integrate/adapt the changes made by Anton into the release version of
+  - integrate/adapt the changes made by Anton into the release version of
   the script; <- done
-  2. modify the "*versionning* mechanism" that is tightly coupled to Ubuntu
+  - make architecture identification abstract:
+    - i?86 -> x86
+    - x86_64 -> x64
+  - ceate a list of system dependent functions and respective variables:
+    - variables:
+    - functions:
+  - modify the "*versionning* mechanism" that is tightly coupled to Ubuntu
   versions into an abstract mechanism, i.e., define variables by generations,
   not Ubuntu versions;
-  3. create a new function that detects what Linux box it's running on.
+  - create a new function that detects what Linux box it's running on.
   Returns "Unknown" if not detected.
-  4. Now with "Ubuntu" and "Unknown" options, put code that is "Ubuntu
+  - Now with "Ubuntu" and "Unknown" options, put code that is "Ubuntu
   only" in one module script and copy-paste-change those same functions into 
   another module script for the "Unknown Linux" option.
-  5. The unknown option will rely on user input to provide an additional
+  - The unknown option will rely on user input to provide an additional
   on what generation the Linux box or with which Linux distro is it similar
   to. Either way, it will only provide hints on what packages should be
   installed in the Linux box.
-  6. NOTE: if there are things that are Distro dependent and also
+  - NOTE: if there are things that are Distro dependent and also
   OpenFOAM version dependent, then we can create even more module scripts.
   Hopefully this won't be necessary, but it could happen. So, in other words,
   do something like this on the Ubuntu module script (haven't made a code
@@ -27,7 +33,7 @@
       import_module "ubuntu_of17x"
     fi
 
-
+Unsorted tasks:
    2. add "use System OpenMPI" option;
    3. improve the dialog system:
       1. to include the custom options in a less *wreck-less* way;
@@ -53,7 +59,7 @@
    4. initiate process to *modularize* even further:
       5. start adding other distros!
 
-*Tasks to do in the code for 1.7.x*:
+ *Tasks to do in the code for 1.7.x*:
 
    1. fork/branch (into a different folder) from the script in 1.6.x, in
    order to primarily make a working script for 1.7.x;

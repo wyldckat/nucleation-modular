@@ -30,6 +30,19 @@ fi
 #Detect architecture and ubuntu version
 set -e
 arch=`uname -m`
+case $arch in
+  i*86)
+    arch=x86
+    ;;
+  x86_64)
+    arch=x64
+    ;;
+  *)
+    echo "Sorry, architecture not recognized, aborting."
+    exit 1
+    ;;
+esac
+
 version=`cat /etc/lsb-release | grep DISTRIB_RELEASE= | sed s/DISTRIB_RELEASE=/$1/g`
 
 
@@ -44,9 +57,9 @@ function isleftlarger_or_equal()
   a=$1
   b=$2
   if [ x`echo $a | awk '{ if ($1 >= '$b') {print "yes"}}'` == "xyes" ]; then
-    return 1
-  else
     return 0
+  else
+    return 1
   fi
   set -e
 }
@@ -586,21 +599,14 @@ function define_packages_to_download()
   
   #Third Party files to download
   THIRDPARTY_GENERAL="ThirdParty-1.6.General.gtgz"
-  if [ "$arch" == "x86_64" ]; then
+  if [ "$arch" == "x64" ]; then
     THIRDPARTY_BIN="ThirdParty-1.6.linux64Gcc.gtgz"
     
-    isleftlarger_or_equal 8.04 $version
-    leq804=$?
-    isleftlarger_or_equal $version 10.04
-    if [ "x$?" == "x1" -o "x$leq804" == "x1" ]; then
+    if isleftlarger_or_equal 8.04 $version || isleftlarger_or_equal $version 10.04; then
       THIRDPARTY_BIN_CMAKE="ThirdParty-1.6.linuxGcc.gtgz"
     fi
-    unset leq804
-  elif [ x`echo $arch | grep -e "i.86"` != "x" ]; then
+  elif [ "$arch" == "x86" ]; then
     THIRDPARTY_BIN="ThirdParty-1.6.linuxGcc.gtgz"
-  else
-    echo "Sorry, architecture not recognized, aborting."
-    exit 1
   fi
   
   #patch file for MPFR for gcc 4.3.3 to build properly
@@ -638,14 +644,12 @@ function install_ubuntu_packages()
   PACKAGES_TO_INSTALL="w3m pv binutils-dev flex bison git-core build-essential python-dev libreadline5-dev wget zlib1g-dev cmake"
 
   #for Ubuntu 8.04, a few more packages are needed
-  isleftlarger_or_equal 8.10 $version
-  if [ x"$?" == x"1" ]; then
+  if isleftlarger_or_equal 8.10 $version; then
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL curl"
   fi
   
   #for Ubuntu 9.10 and 10.04, a few more packages are needed
-  isleftlarger_or_equal $version 9.10
-  if [ x"$?" == x"1" ]; then
+  if isleftlarger_or_equal $version 9.10; then
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libpng12-dev libxt-dev libxi-dev libxrender-dev libxrandr-dev libxcursor-dev libxinerama-dev libfreetype6-dev libfontconfig1-dev libglib2.0-dev"
     if [ "x$BUILD_PARAVIEW" == "xYes" ]; then
       PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL freeglut3-dev"
@@ -662,7 +666,7 @@ function install_ubuntu_packages()
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL texinfo byacc"
   fi
 
-  if [ "$arch" == "x86_64" ]; then
+  if [ "$arch" == "x64" ]; then
     if [ "x$BUILD_GCC_STRICT_64BIT" != "xYes" -o "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
       PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL ia32-libs"
     fi
@@ -970,9 +974,9 @@ function link_gcc433_libraries_to_system()
 {
   #Define which folder to fix libraries
   if [ "$version" != "8.04" ]; then
-    if [ "$arch" == "x86_64" ]; then
+    if [ "$arch" == "x64" ]; then
       LIBRARY_PATH_TO_FIX=${PATHOF}/ThirdParty-1.6/gcc-4.3.3/platforms/linux64/lib64
-    elif [ x`echo $arch | grep -e "i.86"` != "x" ]; then
+    elif [ "$arch" == "x86" ]; then
       LIBRARY_PATH_TO_FIX=${PATHOF}/ThirdParty-1.6/gcc-4.3.3/platforms/linux/lib
     fi
   fi
@@ -996,17 +1000,16 @@ function apply_patches_fixes()
   #FIXES ------
   
   #fix links to proper libraries for gcc, as long as the OpenFOAM's precompiled version is used
-  isleftlarger_or_equal $version 9.10
-  if [ x"$?" == x"1" -a "x$USE_OF_GCC" == "xYes" ]; then
+  if isleftlarger_or_equal $version 9.10 && [ "x$USE_OF_GCC" == "xYes" ]; then
     link_gcc433_libraries_to_system
   fi
   
   #fix ParaView's help file reference, for when ParaView isn't built
   if [ "x$BUILD_PARAVIEW" != "xYes" ]; then
     cd_openfoam
-    if [ x`echo $arch | grep -e "i.86"` != "x" ]; then
+    if [ "$arch" == "x86" ]; then
       cd ThirdParty-1.6/paraview-3.6.1/platforms/linuxGcc/bin
-    elif [ "$arch" == "x86_64" ]; then
+    elif [ "$arch" == "x64" ]; then
       cd ThirdParty-1.6/paraview-3.6.1/platforms/linux64Gcc/bin
     fi
     mv pqClientDocFinder.txt pqClientDocFinder_orig.txt
@@ -1025,7 +1028,7 @@ function apply_patches_fixes()
   fi
   patchBashrcMultiCore #for faster builds on multi-core machines
   #proper fix for running in 32bit
-  if [ x`echo $arch | grep -e "i.86"` != "x" ]; then
+  if [ "$arch" == "x86" ]; then
     patchBashrcTo32
   fi
   #Fix for using the system's compiler
@@ -1193,7 +1196,7 @@ function build_openfoam_gcc()
 
       #TODO: this won't be necessary if we build cmake too, since then there won't be 
       #any more dependencies to the system's libraries!
-      if [ "$arch" == "x86_64" -a "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
+      if [ "$arch" == "x64" -a "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
         link_gcc433_libraries_to_system
       fi
     else
@@ -2256,7 +2259,7 @@ if [ "x$INSTALLMODE" != "xupdate" ]; then
 
   #GCC compiling settings
   if [ "x$USE_OF_GCC" == "xYes" ]; then
-    if [ "$arch" == "x86_64" ]; then
+    if [ "$arch" == "x64" ]; then
       while : ; do
         GCCSETTINGSOPTS=$(dialog --stdout --separate-output \
         --backtitle "OpenFOAM-1.6.x Installer for Ubuntu - code.google.com/p/openfoam-ubuntu"         \
@@ -2271,7 +2274,7 @@ if [ "x$INSTALLMODE" != "xupdate" ]; then
         fi
       done
 
-    elif [ x`echo $arch | grep -e "i.86"` != "x" ]; then
+    elif [ "$arch" == "x86" ]; then
       while : ; do  
         GCCSETTINGSOPTS=$(dialog --stdout --separate-output \
         --backtitle "OpenFOAM-1.6.x Installer for Ubuntu - code.google.com/p/openfoam-ubuntu"         \
