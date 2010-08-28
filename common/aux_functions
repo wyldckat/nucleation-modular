@@ -17,7 +17,7 @@
 #   do_wget_md5sum()
 
 #global variables used by this script:
-#   SYSTEM_VERSION - must be defined before sourcing this script. It holds the name for the system 
+#   INST_SYSTEM - must be defined before sourcing this script. It holds the name for the system 
 #                    script of the same name as this one.
 #   SCRIPT_WORKFOLDER - the folder where the main script's dependency files are located
 #   PACKAGES_TO_INSTALL - list of packages to be installed - used by prune_packages_to_install()
@@ -29,10 +29,10 @@
 echo "Sourcing Auxiliary functions..."
 
 #source system related script
-if [ "x$SYSTEM_VERSION" != "x" -a "x${SCRIPT_WORKFOLDER}" != "x" ]; then
-  . ${SCRIPT_WORKFOLDER}/common/${SYSTEM_VERSION}/aux_functions
+if [ "x$INST_SYSTEM" != "x" -a "x${SCRIPT_WORKFOLDER}" != "x" ]; then
+  . ${SCRIPT_WORKFOLDER}/common/${INST_SYSTEM}/aux_functions
 else
-  echo "The variable SYSTEM_VERSION and/or SCRIPT_WORKFOLDER is/are empty and they are crucial to exist! Aborting execution."
+  echo "The variable INST_SYSTEM and/or SCRIPT_WORKFOLDER is/are empty and they are crucial to exist! Aborting execution."
   exit 1
 fi
 

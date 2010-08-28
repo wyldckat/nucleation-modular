@@ -7,6 +7,10 @@ Done:
 
 
 Tasks to do:
+  - IMPORTANT: because I forgot about using "hg push", then Anton's changes
+  weren't cloned into the modular version... will have to refit them into the
+  new modular system with proper comment in the commit!
+
   - systems contemplated for now (variable INST_SYSTEM):
       ubuntu
       generic
@@ -17,12 +21,19 @@ Tasks to do:
       same name in the folders $INST_SYSTEM:
         common
           aux_functions
+          user_functions
+          main_functions
         common/$INST_SYSTEM
           aux_functions
+          user_functions
+          main_functions
         of16x
           patches
+          user_functions
+          main_functions
         of16x/$INST_SYSTEM
           patches
+          user_functions
           
 
 

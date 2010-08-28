@@ -2,10 +2,37 @@
 
 #-- USER INTERFACE FUNCTIONS ------------------------------------------------------
 #list of functions herein:
+#    define_system_custom_optionals()
 
 #global variables used by this script:
 #   INST_SYSTEM - System variant for installation - defined in the master script
 
 #Code -----------------------------------------
-#echo "Sourcing User Interface functions for Ubuntu..."
+echo "Sourcing User Interface functions for Ubuntu..."
 
+
+function define_system_custom_optionals()
+{
+  DOUPGRADE=No
+  
+  if [ "x$CUSTOMOPTS_OFOPTIONALS" == "xYes" ]; then
+    #Settings choosing Dialog
+    while : ; do
+      SETTINGSOPTS=$(dialog --stdout --separate-output \
+      --backtitle "$GUI_BACKTITLE"         \
+      --checklist "Choose Ubuntu related settings: < Space to select ! >" 15 50 1 \
+      1 "Do apt-get upgrade" off )
+
+      if [ x"$?" == x"0" ]; then
+        break;
+      else
+        cancel_installer
+      fi
+    done
+
+    #Take care of unpack settings from SETTINGSOPTS
+    for setting in $SETTINGSOPTS ; do
+      if [ $setting == 1 ] ; then DOUPGRADE=Yes ; fi
+    done
+  fi
+}

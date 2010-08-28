@@ -24,6 +24,7 @@ SCRIPT_TARBALL="installOF.tar.gz"
 
 #Code ---------------------------------------------------------
 #Starting script
+echo "-------------------------------------------------------------"
 echo "Starting script..."
 
 #make the script abort if something goes wrong
@@ -85,6 +86,7 @@ if [ ! -d "${SCRIPT_WORKFOLDER}" ]; then
   mkdir -p ${SCRIPT_WORKFOLDER} || ( echo "Unable to create the work folder ${SCRIPT_WORKFOLDER}. Aborting." ; exit 1 )
 fi
 
+#go up to the work folder
 cd ${SCRIPT_WORKFOLDER}
 
 #Download the rest of the script's sourcing dependencies and other packages
@@ -114,7 +116,9 @@ fi
 
 #Script start up complete --------------------------------------------------------
 echo "Script start up complete."
+echo "-------------------------------------------------------------"
 #--------------------------------------------------------
+
 
 #Now lets interface with the user
 
@@ -174,7 +178,7 @@ fi
 #Enable this script's logging functionality ...
 if [ "$LOG_OUTPUTS" == "Yes" ]; then
   exec 2>&1 > >(tee -a installOF.log)
-  LOG_OUTPUTS_FILE_LOCATION=$PWD/installOF.log
+  LOG_OUTPUTS_FILE_LOCATION=${BASE_LOG_FOLDER}/installOF.log
 fi
 
 #END OF INTERACTIVE SECTION  ----------------------------------

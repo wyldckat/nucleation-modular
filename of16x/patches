@@ -14,10 +14,10 @@
 echo "Sourcing patching functions for OpenFOAM 1.6.x..."
 
 #source system related script
-if [ "x$SYSTEM_VERSION" != "x" -a "x$OF_SHORT_VERSION" != "x" ]; then
-  . ${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/${SYSTEM_VERSION}/patches
+if [ "x$INST_SYSTEM" != "x" -a "x$OF_SHORT_VERSION" != "x" ]; then
+  . ${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/${INST_SYSTEM}/patches
 else
-  echo "The variable SYSTEM_VERSION and/or OF_SHORT_VERSION is/are empty and both are crucial to exist! Aborting execution."
+  echo "The variable INST_SYSTEM and/or OF_SHORT_VERSION is/are empty and both are crucial to exist! Aborting execution."
   exit 1
 fi
 
