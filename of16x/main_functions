@@ -328,8 +328,7 @@ function apply_patches_fixes()
   
   #apply patch for paraFoam, for when the running language 
   #isn't the standard english!
-  issystem_english
-  if [ x"$?" != x"1" ]; then
+  if ! issystem_english; then
     patchParaFoamScript
   fi
   

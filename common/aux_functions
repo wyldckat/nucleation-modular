@@ -15,6 +15,10 @@
 #   do_wget()
 #   do_md5sum()
 #   do_wget_md5sum()
+#   SaveSTD_OE_To45()
+#   StartLog()
+#   ContLog()
+#   EndLog()
 
 #global variables used by this script:
 #   INST_SYSTEM - must be defined before sourcing this script. It holds the name for the system 
@@ -23,6 +27,8 @@
 #   PACKAGES_TO_INSTALL - list of packages to be installed - used by prune_packages_to_install()
 #   PATHOF   - path to OpenFOAM's base folder. Example: $HOME/OpenFOAM
 #   SAVEPIDS - list of PIDS to not kill - defined by save_running_pids() and used by killgroup()
+#   BASE_LOG_FOLDER - the base folder for logs - defined in the common/user_interface script
+#   LOG_OUTPUTS_FILE_LOCATION - This is the path to the log file of the master script - defined in StartLog()
 
 
 #Code -----------------------------------------
@@ -52,14 +58,14 @@ function isleftlarger_or_equal()
   set -e
 }
 
-#is sh->bash ? if so, returns 1, else 0
+#is sh->bash ? if so, returns 0 (true in error code), else 1
 function is_sh_bash()
 {
   set +e
   if [ "x`find \`which sh\` -lname bash`" == "x" ]; then
-    return 0
-  else
     return 1
+  else
+    return 0
   fi
   set -e
 }
@@ -69,9 +75,9 @@ function issystem_english()
 {
   set +e
   if [ x`echo $LANG | grep ^en` != "x" ]; then
-    return 1
-  else
     return 0
+  else
+    return 1
   fi
   set -e
 }
@@ -87,8 +93,7 @@ function prune_packages_to_install()
   PACKAGES_TO_INSTALL_TMP=""
   for package in $PACKAGES_TO_INSTALL
   do
-    ispackage_installed $package
-    if [ x"$?" == x"0" ]; then
+    if ! ispackage_installed $package; then
       PACKAGES_TO_INSTALL_TMP="$PACKAGES_TO_INSTALL_TMP $package"
     fi
   done
@@ -216,10 +221,10 @@ function do_md5sum()
   echo "Checking md5 checksum of file $1 ..."
   if [ x`grep $2 -e "$1" | md5sum -c | grep "$1: OK" | wc -l` == "x1" ]; then
     echo "File is OK."
-    return 1
+    return 0
   else
     echo "File is NOT OK."
-    return 0
+    return 1
   fi
   set -e
 }
@@ -229,10 +234,9 @@ function do_md5sum()
 #arguments: first 3 are for wget, the last one is the file with the md5sum list
 function do_wget_md5sum()
 {
-  while [ true ]; do
+  while : ; do
     do_wget "$1" "$2" "$3"
-    do_md5sum "$2" "$4"
-    if [ x"$?" == x"1" ]; then
+    if do_md5sum "$2" "$4" ; then
       break;
     else
       echo -e "\nGetting the file '"$2"'seems to have failed for some reason. Do you want to try to download again? (yes or no): "
@@ -250,3 +254,26 @@ function do_wget_md5sum()
   unset casestat
 }
 
+#save the stdout in 4 and stderr in 5
+function SaveSTD_OE_To45()
+{
+  exec 4<&1 5<&2
+}
+
+function StartLog()
+{
+  LOG_OUTPUTS_FILE_LOCATION="${BASE_LOG_FOLDER}/installOF.log"
+  exec > >(tee "$LOG_OUTPUTS_FILE_LOCATION") 2>&1
+}
+
+function ContLog()
+{
+  exec 2>&1
+  exec > >(tee -a "$LOG_OUTPUTS_FILE_LOCATION") 2>&1
+}
+
+function EndLog()
+{
+  #force log termination and restore stdout and stderr
+  exec 1>&- 2>&- 1<&4 2<&5
+}

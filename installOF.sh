@@ -108,9 +108,11 @@ fi
 . ${SCRIPT_WORKFOLDER}/common/main_functions
 . ${SCRIPT_WORKFOLDER}/common/user_interface
 
+#Save stdout and stderr into 4 and 5
+SaveSTD_OE_To45
+
 #verify system's language and set to C if not english
-issystem_english
-if [ x"$?" == "x0" ]; then
+if ! issystem_english; then
   set_system_to_neutral_lang
 fi
 
@@ -177,8 +179,7 @@ fi
 
 #Enable this script's logging functionality ...
 if [ "$LOG_OUTPUTS" == "Yes" ]; then
-  exec 2>&1 > >(tee -a installOF.log)
-  LOG_OUTPUTS_FILE_LOCATION=${BASE_LOG_FOLDER}/installOF.log
+  StartLog
 fi
 
 #END OF INTERACTIVE SECTION  ----------------------------------

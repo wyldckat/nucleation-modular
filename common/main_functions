@@ -469,8 +469,7 @@ function check_installation()
 function fix_tutorials()
 {
   #fix tutorials, if sh isn't linked to bash
-  is_sh_bash
-  if [ "x$?" == "x0" ]; then
+  if is_sh_bash; then
     #set up environment, just in case we forget about it!
     if [ "x$FOAM_TUTORIALS" == "x" ]; then
       setOpenFOAMEnv

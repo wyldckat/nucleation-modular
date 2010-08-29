@@ -4,13 +4,9 @@ Done:
   - make architecture identification abstract:
     - i?86 -> x86
     - x86_64 -> x64
-
-
-Tasks to do:
   - IMPORTANT: because I forgot about using "hg push", then Anton's changes
   weren't cloned into the modular version... will have to refit them into the
   new modular system with proper comment in the commit!
-    ^- half done... there is still some checking on the sanitization part... and testing if both options work or not.
 
   - systems contemplated for now (variable INST_SYSTEM):
       ubuntu
@@ -37,36 +33,34 @@ Tasks to do:
           user_functions
           
 
+  - create a new function that detects what Linux box it's running on.
+  Returns "Generic" if not detected. <- didn't bother creating a function, it's
+  streamlined in the initial code.
 
-  - ceate a list of system dependent functions and respective variables:
-    - variables:
-        version
-      
-    - functions:
+  - NOTE: if there are things that are Distro dependent and also
+  OpenFOAM version dependent, then we can create even more module scripts.
+  Hopefully this won't be necessary, but it could happen. <- done and with no need to make further downloads.
+
+  - Functions for starting, continuing and ending the script's self-log functionality have been implemented.
+    But if you just want to not log something, redirect to >&4. For example:
+        echo "This won't be logged into the master script!" >&4
+
+Tasks to do:
+
   - modify the "*versionning* mechanism" that is tightly coupled to Ubuntu
   versions into an abstract mechanism, i.e., define variables by generations,
-  not Ubuntu versions;
-  - create a new function that detects what Linux box it's running on.
-  Returns "Unknown" if not detected.
-  - Now with "Ubuntu" and "Unknown" options, put code that is "Ubuntu
+  not Ubuntu versions; <- done, I think, still have to go through the functions to confirm
+
+  - Now with "Ubuntu" and "Generic" options, put code that is "Ubuntu
   only" in one module script and copy-paste-change those same functions into 
   another module script for the "Unknown Linux" option.
+      ^- half done, still have to create the Generic counterpart
+
   - The unknown option will rely on user input to provide an additional
   on what generation the Linux box or with which Linux distro is it similar
   to. Either way, it will only provide hints on what packages should be
-  installed in the Linux box.
-  - NOTE: if there are things that are Distro dependent and also
-  OpenFOAM version dependent, then we can create even more module scripts.
-  Hopefully this won't be necessary, but it could happen. So, in other words,
-  do something like this on the Ubuntu module script (haven't made a code
-  check on this ;) ):
-    if [ "$OFversion" == "1.6.x" ]; then
-      do_wget_module "ubuntu_of16x"
-      import_module "ubuntu_of16x"
-    else
-      do_wget_module "ubuntu_of17x"
-      import_module "ubuntu_of17x"
-    fi
+  installed in the Linux box, and will try to infer what might be missing...
+
 
 Unsorted tasks:
    2. add "use System OpenMPI" option;
