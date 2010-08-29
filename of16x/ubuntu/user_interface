@@ -12,7 +12,8 @@ echo "Sourcing User Interface functions for OpenFOAM 1.6.x and Ubuntu..."
 
 function check_options_sanity_for_system()
 {
-  if [ "x$INSTALLMODE" != "xcustom" ]; then
+  if [ "x$INSTALLMODE" != "xcustom" ] && \
+     ! [ "$INSTALLMODE" == "fresh" -a "$USE_REPO_PV" == "Yes" -o "$USE_KITWARE_PV" == "Yes" ]; then
 
     if [ "$SYSTEM_VERSION" == "10.04" -a "x$BUILD_PARAVIEW" != "xYes" ]; then
         BUILD_QT=Yes

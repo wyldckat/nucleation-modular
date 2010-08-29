@@ -343,3 +343,63 @@ cd $tmpVar
 unset tmpVar
 }
 
+#Patch paraFoamSys
+function patchParaFoamSys()
+{
+  tmpVar=$PWD
+  cd_openfoam
+  cd OpenFOAM-1.6.x/bin/
+
+  #add kitware paraview to path
+  if [ "x$USE_KITWARE_PV" == "xYes" ]; then
+echo '--- orig/'$PFOAM_PATCHFILE'  2010-08-28 11:35:05.000000000 +0100
++++ ./'$PFOAM_PATCHFILE' 2010-08-29 13:10:41.000000000 +0100
+@@ -33,6 +33,8 @@
+ #------------------------------------------------------------------------------
+ Script=${0##*/}
+ 
++export PATH='$PATHOF'/ThirdParty-1.6/'$KV_PV_DIR'/bin:$PATH
++
+ usage() {
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+' | patch -p0
+  fi
+
+  #check paraview version
+  #PV writes version string to stderr...
+  if [ "x$USE_KITWARE_PV" == "xYes" ]; then
+    cd $PATHOF/ThirdParty-1.6/$KV_PV_DIR/bin
+    ./paraview -V 2> $PATHOF/OpenFOAM-1.6.x/bin/pv.log
+    cd_openfoam
+    cd OpenFOAM-1.6.x/bin/
+  else
+    paraview -V 2> pv.log
+  fi
+
+  Paraview_VERSION="$(cat pv.log | awk -F'View' '{print $2}')"
+  rm pv.log
+  #include version variable in .bashrc so we can use this in paraFoamSys
+  if [ "x$Paraview_VERSION" == "x" ]; then
+      echo "Paraview version could not be determined!"
+  else
+
+echo '--- orig/'$PFOAM_PATCHFILE'  2010-08-28 11:35:05.000000000 +0100
++++ ./'$PFOAM_PATCHFILE' 2010-08-29 13:10:41.000000000 +0100
+@@ -56,6 +58,9 @@
+    PRECISION="$(cat system/controlDict | grep '"'"'timePrecision'"'"' | awk '"'"'{print $2}'"'"')"
+ }
+ 
++#injected here by the installer
++export Paraview_VERSION='$Paraview_VERSION'
++
+ # get a sensible caseName
+ caseName=${PWD##*/}
+ 
+' | patch -p0
+
+  fi
+
+  cd $tmpVar
+  unset tmpVar
+}

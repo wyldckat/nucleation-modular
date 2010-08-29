@@ -26,7 +26,8 @@ function check_options_sanity()
   #Check the sanity of the options, depending on the target system
   check_options_sanity_for_system
   
-  if [ "x$INSTALLMODE" != "xcustom" ]; then
+  if [ "x$INSTALLMODE" != "xcustom" ] && \
+     ! [ "$INSTALLMODE" == "fresh" -a "$USE_REPO_PV" == "Yes" -o "$USE_KITWARE_PV" == "Yes" ]; then
 
     if [ "x$INSTALLMODE" == "xserver" ]; then
         BUILD_PARAVIEW=Yes

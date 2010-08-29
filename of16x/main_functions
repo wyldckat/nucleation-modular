@@ -39,6 +39,43 @@ function define_packages_to_download()
     THIRDPARTY_BIN="ThirdParty-1.6.linuxGcc.gtgz"
   fi
   
+  #Kitware paraview files to download if USE_KITWARE_PV is selected
+  KV_PV_BASEURL="http://www.paraview.org/files/v3.8/"
+  if [ "$arch" == "x64" ]; then
+    #need dir for untaring
+    KV_PV_FILE="ParaView-3.8.0-Linux-x86_64.tar.gz"
+    KV_PV_DIR="ParaView-3.8.0-Linux-x86_64"
+  elif [ "$arch" == "x86" ]; then
+    KV_PV_FILE="ParaView-3.8.0-Linux-i686.tar.gz"
+    KV_PV_DIR="ParaView-3.8.0-Linux-i686"
+  fi
+
+  #Repository paraview -> upgraded paraFoam script
+  if [ "x$USE_REPO_PV" == "xYes" ]; then
+    PFOAM_PATCHFILE="paraFoamSys"
+  fi
+
+  if [ "x$USE_KITWARE_PV" == "xYes" ]; then
+    #Kitware paraview files to download if USE_KITWARE_PV is selected
+    KV_PV_BASEURL="http://www.paraview.org/files/v3.8/"
+    if [ "$arch" == "x86_64" ]; then
+      #need dir for untaring
+      KV_PV_FILE="ParaView-3.8.0-Linux-x86_64.tar.gz"
+      KV_PV_DIR="ParaView-3.8.0-Linux-x86_64"
+    elif [ x`echo $arch | grep -e "i.86"` != "x" ]; then
+      KV_PV_FILE="ParaView-3.8.0-Linux-i686.tar.gz"
+      KV_PV_DIR="ParaView-3.8.0-Linux-i686"
+    else
+      echo "Sorry, architecture not recognized, aborting."
+      exit 1
+    fi
+  fi
+
+  #Repository paraview -> upgraded paraFoam script
+  if [ "x$USE_REPO_PV" == "xYes" -o "x$USE_KITWARE_PV" == "xYes" ]; then
+    PFOAM_PATCHFILE="paraFoamSys"
+  fi
+  
   #patch file for MPFR for gcc 4.3.3 to build properly
   MPFRPATCHFILE="patchMPFR"
   
@@ -104,6 +141,16 @@ function download_files()
     do_wget "$SCRIPT_REPO" "$CCMIO_MAKEFILES_FILES"
     do_wget "$SCRIPT_REPO" "$CCMIO_MAKEFILES_OPTIONS"
   fi
+
+  if [ "x$USE_KITWARE_PV" == "xYes" ]; then
+    #get paraview 3.8 from kitware, which has native openfoam reader
+    do_wget "$KV_PV_BASEURL" "$KV_PV_FILE"
+  fi
+
+  if [ "x$USE_REPO_PV" == "xYes" -o "x$USE_KITWARE_PV" == "xYes" ]; then
+    #get our patched version of paraFoam -> paraFoamSys
+    do_wget "$OPENFOAM_UBUNTU_SCRIPT_REPO" "$PFOAM_PATCHFILE"
+  fi
 }
 
 #Unpack downloaded files
@@ -136,6 +183,14 @@ function unpack_downloaded_files()
     cd ThirdParty-1.6/cmake-2.6.4/platforms/
     #this is necessary, since there isn't a pre-build made for 64bit
     ln -s linux linux64
+  fi
+  
+  if [ "x$USE_KITWARE_PV" == "xYes" ]; then
+    cd_openfoam
+    echo "Untaring $KV_PV_FILE"
+    pv $KV_PV_FILE | tar -xz
+    #put ParaView in 3rd Party directory
+    mv "$KV_PV_DIR" "ThirdParty-1.6/$KV_PV_DIR"
   fi
   
   if [ "x$BUILD_QT" == "xYes" ]; then
@@ -284,6 +339,16 @@ function apply_patches_fixes()
   patchMakeQtScript
   patchMakeParaViewScript
   patchAllwmakeLibccmioScript
+
+  if [ "x$USE_REPO_PV" == "xYes" -o "x$USE_KITWARE_PV" == "xYes" ]; then
+    #First copy paraFoamSys to OpenFOAM's bin folder
+    cd_openfoam
+    cp $PFOAM_PATCHFILE OpenFOAM-1.6.x/bin/
+    chmod +x OpenFOAM-1.6.x/bin/$PFOAM_PATCHFILE
+
+    #Now patch it up
+    patchParaFoamSys
+  fi
 }
 
 #Activate OpenFOAM environment
@@ -295,6 +360,11 @@ function setOpenFOAMEnv()
   echo "------------------------------------------------------"
   cd OpenFOAM-1.6.x/
   . $PATHOF/OpenFOAM-1.6.x/etc/bashrc 
+
+  #add kitware paraview to path
+  if [ "x$USE_KITWARE_PV" == "xYes" ]; then
+    echo "export PATH=$PATHOF/OpenFOAM-1.6.x/ThirdParty-1.6/$KV_PV_DIR/bin:$PATH" >> .bashrc
+  fi
 }
 
 #Add OpenFOAM's bashrc entry in $PATHOF/.bashrc

@@ -10,6 +10,7 @@ Tasks to do:
   - IMPORTANT: because I forgot about using "hg push", then Anton's changes
   weren't cloned into the modular version... will have to refit them into the
   new modular system with proper comment in the commit!
+    ^- half done... there is still some checking on the sanitization part... and testing if both options work or not.
 
   - systems contemplated for now (variable INST_SYSTEM):
       ubuntu

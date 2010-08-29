@@ -116,6 +116,11 @@ function install_packages()
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libosmesa6 libosmesa6-dev"
   fi
 
+  #if paraview from repository option was selected, add it to the list of packages
+  if [ "x$USE_REPO_PV" == "xYes" ]; then
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL paraview"
+  fi
+
   #now remove the ones that are already installed
   prune_packages_to_install
   
