@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #
-# USAGE: 
+# USAGE:
 #   Move this script "installOF.sh" to
 #   $ chmod +x installOF.sh
 #   $ ./installOF.sh
@@ -33,7 +33,7 @@ set -e
 #run from the script's own directory
 cd ${0%/*} || ( echo "You must run this script from its own folder."; exit 1 )
 
-#block attempts to run this script as superuser. If the user wants to install in a system folder, 
+#block attempts to run this script as superuser. If the user wants to install in a system folder,
 #let him/her set proper permissions to that folder first!
 if [ $(/usr/bin/id -u) -eq 0 ]; then
     echo -e "Please do not run this script with superuser/root powers!!\n"
@@ -75,7 +75,7 @@ if [ -e "/etc/lsb-release" ]; then #checking "lsb-release" based distros
   if grep -i 'Ubuntu' /etc/lsb-release > /dev/null; then
     INST_SYSTEM=ubuntu
     SYSTEM_VERSION=`grep "DISTRIB_RELEASE=" /etc/lsb-release | sed s/DISTRIB_RELEASE=//g`
-  
+
   #For Debian releases!?
   #elif grep -i 'Debian' /etc/lsb-release > /dev/null; then
   fi
@@ -119,6 +119,9 @@ fi
 #Save stdout and stderr into 4 and 5
 SaveSTD_OE_To45
 
+#Set default user options for installation
+define_default_user_options
+
 #verify system's language and set to C if not english
 if ! issystem_english; then
   set_system_to_neutral_lang
@@ -153,9 +156,13 @@ should_keep_inst_log
 pick_openfoam_version
 
 #source version specific scripts
+echo "-------------------------------------------------------------"
+echo "Sourcing scripts related to the chosen OpenFOAM version..."
 . ${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/main_functions
 . ${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/user_interface
 . ${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/patches
+echo "Sourcing complete."
+echo "-------------------------------------------------------------"
 
 #Installation mode dialog
 define_install_mode
@@ -170,7 +177,7 @@ if [ "x$INSTALLMODE" != "xupdate" ]; then
 
   #Define options for OpenFOAM optionals
   define_paraview_options
-  
+
   #Check the sanity of the options
   check_options_sanity
 
@@ -186,7 +193,7 @@ if [ "x$INSTALLMODE" != "xupdate" ]; then
 fi
 
 #Enable this script's logging functionality ...
-if [ "$LOG_OUTPUTS" == "Yes" ]; then
+if [ "x$LOG_OUTPUTS" == "xYes" ]; then
   StartLog
 fi
 
@@ -202,6 +209,9 @@ if [ "x$INSTALLMODE" != "xupdate" ]; then
   #Defining packages to download
   define_packages_to_download
 
+  #Define files (including paths) to the files this script provides
+  define_script_s_files
+
   #install system packages
   install_packages
 
@@ -210,10 +220,10 @@ if [ "x$INSTALLMODE" != "xupdate" ]; then
 
   #Download necessary files
   download_files
-  
+
   #Unpack downloaded files
   unpack_downloaded_files
-  
+
   #process our timming log, in order to provide progress and estimated timings
   process_online_log_of_timings
 
@@ -246,7 +256,7 @@ if [ "x$INSTALLMODE" != "xupdate" ]; then
 
       #do an Allwmake on OpenFOAM 1.6.x
       allwmake_openfoam
-      
+
       #check if the installation is complete
       check_installation
 
@@ -254,22 +264,22 @@ if [ "x$INSTALLMODE" != "xupdate" ]; then
 
     #Continue with the next steps, only if it's OK to continue!
     if [ "x$FOAMINSTALLFAILED" == "x" -o "x$FOAMINSTALLFAILED_BUTCONT" == "xYes" ]; then
-      
+
       #build Doxygen documentation of the code
       allwmake_openfoam_docs
 
       #build Qt
       build_Qt
-      
+
       #build ParaView
       build_ParaView
-      
+
       #build the PV3FoamReader plugin
       build_PV3FoamReader
-      
+
       #build ccm26ToFoam
       build_ccm26ToFoam
-      
+
     fi
   fi
 
@@ -294,7 +304,7 @@ fi
 set +e
 
 if [ "x$FOAMINSTALLFAILED" == "x" -o "x$FOAMINSTALLFAILED_BUTCONT" == "xYes" ]; then
-  # NOTE: run bash instead of exit, so the OpenFOAM environment stays operational on 
+  # NOTE: run bash instead of exit, so the OpenFOAM environment stays operational on
   #the calling terminal.
   cd_openfoam
   #calling bash from here seems to be a bad idea... doesn't seem to work properly...

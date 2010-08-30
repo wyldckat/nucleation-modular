@@ -2,8 +2,9 @@
 
 #-- MAIN FUNCTIONS ------------------------------------------------------
 #list of functions herein:
-#    ask_for_sudo_policy()
-#    install_dialog_package()
+#   ask_for_sudo_policy()
+#   install_dialog_package()
+#   define_script_s_files_system()
 
 #global variables used by this script:
 #   SHOW_SUDO_COMMANDS_ONLY - option for showing or direct usage of install commands - defined in ask_for_sudo_policy()
@@ -101,39 +102,39 @@ function install_packages()
   #for Ubuntu 9.10 and 10.04, a few more packages are needed
   if isleftlarger_or_equal $SYSTEM_VERSION 9.10; then
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libpng12-dev libxt-dev libxi-dev libxrender-dev libxrandr-dev libxcursor-dev libxinerama-dev libfreetype6-dev libfontconfig1-dev libglib2.0-dev"
-    if [ "x$BUILD_PARAVIEW" == "xYes" ]; then
+    if [ "x$BUILD_PARAVIEW" == "xon" ]; then
       PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL freeglut3-dev"
     fi
   fi
 
   #for documentation, these are necessary
-  if [ "x$BUILD_DOCUMENTATION" == "xdoc" ]; then
+  if [ "x$BUILD_DOCUMENTATION" == "xon" ]; then
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL doxygen graphviz"
   fi
 
   #for building gcc, these are necessary
-  if [ "x$BUILD_GCC" == "xYes" ]; then
+  if [ "x$BUILD_GCC" == "xon" ]; then
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL texinfo byacc"
   fi
 
   if [ "$arch" == "x64" ]; then
-    if [ "x$BUILD_GCC_STRICT_64BIT" != "xYes" -o "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
+    if [ "x$BUILD_GCC_STRICT_64BIT" != "xon" -o "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
       PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL ia32-libs"
     fi
   fi
 
   #install qt4-dev and qt4-dev-tools only if the custom build isn't used
-  if [ "x$BUILD_QT" != "xYes" ]; then
+  if [ "x$BUILD_QT" != "xon" ]; then
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libqt4-dev qt4-dev-tools"
   fi
   
   #install OSMesa when chosen for ParaView
-  if [ "x$BUILD_PARAVIEW_WITH_OSMESA" == "xYes" ]; then
+  if [ "x$BUILD_PARAVIEW_WITH_OSMESA" == "xon" ]; then
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libosmesa6 libosmesa6-dev"
   fi
 
   #if paraview from repository option was selected, add it to the list of packages
-  if [ "x$USE_REPO_PV" == "xYes" ]; then
+  if [ "x$USE_REPO_PV" == "xon" ]; then
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL paraview"
   fi
 
@@ -148,7 +149,7 @@ function install_packages()
 
       echo 'The command "sudo apt-get update -y -q=1" is now going to be executed. Please provide sudo password if it asks you.'
       sudo apt-get update -y -q=1
-      if [ "x$DOUPGRADE" == "xYes" ]; then
+      if [ "x$DOUPGRADE" == "xon" ]; then
         echo 'The command "sudo apt-get upgrade -y" is now going to be executed.'
         sudo apt-get upgrade -y
       fi
@@ -162,7 +163,7 @@ function install_packages()
 
       echo 'Please run the following commands in another terminal or ask your system''s administrator to run them:'
       echo '    sudo apt-get update -y -q=1'
-      if [ "x$DOUPGRADE" == "xYes" ]; then
+      if [ "x$DOUPGRADE" == "xon" ]; then
         echo '    sudo apt-get upgrade -y'
       fi
       echo "    sudo apt-get install -y -q=1 $PACKAGES_TO_INSTALL"
@@ -193,3 +194,15 @@ function install_packages()
   fi  
 }
 
+#Define files (including paths) to the files this script provides for common/$system
+function define_script_s_files_system()
+{
+  #Nothing to do for now...
+  :
+}
+
+#define default options that are system dependent
+function define_default_user_options_system()
+{
+  DOUPGRADE=off  #on | off
+}

@@ -9,3 +9,9 @@
 #Code -----------------------------------------
 echo "Sourcing Main functions functions for OpenFOAM 1.6.x and Ubuntu..."
 
+#Define files (including paths) to the files this script provides for of$OF_SHORT_VERSION/system
+function define_script_s_files_ofv_system()
+{
+  #Nothing to do for now...
+  :
+}

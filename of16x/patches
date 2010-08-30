@@ -5,14 +5,14 @@
 
 #global variables used by this script:
 #   INST_SYSTEM - System variant for installation - defined in the master script
-#   SYSTEM_VERSION - must be defined before sourcing this script. It holds the version for the system 
+#   SYSTEM_VERSION - must be defined before sourcing this script. It holds the version for the system
 #                    script of the same name as this one.
 #   SCRIPT_WORKFOLDER - the folder where the main script's dependency files are located
 #   OF_SHORT_VERSION - the short version of OpenFOAM to be installed. Example: 16x
 #   OF_LONG_VERSION - the long version of OpenFOAM to be installed. Example: 1.6.x
 
 #Code -----------------------------------------
-echo "Sourcing patching functions for OpenFOAM 1.6.x..."
+echo "Sourcing patching functions for OpenFOAM ${OF_LONG_VERSION}..."
 
 #source system related script
 if [ "x$INST_SYSTEM" != "x" -a "x$OF_SHORT_VERSION" != "x" ]; then
@@ -50,8 +50,8 @@ echo '--- ../bashrc 2010-05-02 13:08:09.905803554 +0200
  export WM_PROJECT_DIR=$WM_PROJECT_INST_DIR/$WM_PROJECT-$WM_PROJECT_VERSION
 -export WM_PROJECT_USER_DIR=$HOME/$WM_PROJECT/$USER-$WM_PROJECT_VERSION
 +export WM_PROJECT_USER_DIR=$FOAM_INST_DIR/$USER-$WM_PROJECT_VERSION
- 
- 
+
+
  # Location of third-party software' | patch -p0
 
 cd $tmpVar
@@ -69,8 +69,8 @@ echo '--- ../../bashrc  2009-11-21 00:00:47.502453988 +0000
 +++ bashrc  2009-11-21 00:01:20.814519578 +0000
 @@ -105,6 +105,20 @@
  : ${WM_MPLIB:=OPENMPI}; export WM_MPLIB
- 
- 
+
+
 +#
 +# Set the number of cores to build on
 +#
@@ -108,7 +108,7 @@ echo '--- ../../bashrc  2009-11-21 00:00:47.502453988 +0000
  # WM_ARCH_OPTION = 32 | 64
 -: ${WM_ARCH_OPTION:=64}; export WM_ARCH_OPTION
 +: ${WM_ARCH_OPTION:=32}; export WM_ARCH_OPTION
- 
+
  # WM_PRECISION_OPTION = DP | SP
  : ${WM_PRECISION_OPTION:=DP}; export WM_PRECISION_OPTION' | patch -p0
 
@@ -131,7 +131,7 @@ echo '--- ../../settings.sh 2009-11-21 00:01:29.851902621 +0000
  # compilerInstall = OpenFOAM | System
 -compilerInstall=OpenFOAM
 +compilerInstall=System
- 
+
  case "${compilerInstall:-OpenFOAM}" in
  OpenFOAM)
 @@ -129,6 +132,8 @@
@@ -141,7 +141,7 @@ echo '--- ../../settings.sh 2009-11-21 00:01:29.851902621 +0000
 +System)
 +    export WM_COMPILER_DIR=/usr
  esac
- 
+
  if [ -d "$compilerBin" ]' | patch -p0
 
 cd $tmpVar
@@ -160,7 +160,7 @@ echo '--- ../../paraFoam  2010-04-11 01:38:34.000000000 +0100
 @@ -75,6 +75,8 @@
      esac
  done
- 
+
 +export LC_ALL=C
 +
  # get a sensible caseName
@@ -185,14 +185,14 @@ echo '--- ../AllwmakeLibccmio  2009-07-24 13:51:14.000000000 +0100
 +++ AllwmakeLibccmio 2009-10-17 11:29:36.000000000 +0100
 @@ -33,6 +33,7 @@
  set -x
- 
+
  packageDir=libccmio-2.6.1
 +origDir=$PWD
- 
+
  if [ ! -d ${packageDir} ]
  then
 @@ -52,7 +53,17 @@
- 
+
  if [ -d ${packageDir} -a ! -d ${packageDir}/Make ]
  then
 -   cp -r wmakeFiles/libccmio/Make ${packageDir}/Make
@@ -208,7 +208,7 @@ echo '--- ../AllwmakeLibccmio  2009-07-24 13:51:14.000000000 +0100
 +    cp -r wmakeFiles/libccmio/Make ${packageDir}/Make
 +  fi
  fi
- 
+
  if [ -d ${packageDir}/Make ]' | patch -p0
 cd $tmpVar
 unset tmpVar
@@ -221,8 +221,8 @@ tmpVar=$PWD
 cd_openfoam
 cd ThirdParty-1.6/
 
-if [ -e "$PATHOF/$MPFRPATCHFILE" ]; then
-  patch -p1 < $PATHOF/$MPFRPATCHFILE
+if [ -e "${MPFRPATCHFILE[1]}" ]; then
+  patch -p1 < ${MPFRPATCHFILE[1]}
 fi
 
 cd $tmpVar
@@ -235,7 +235,7 @@ function patchMakeParaViewScript()
 tmpVar=$PWD
 cd_openfoam
 cd ThirdParty-1.6/
-  
+
 echo '--- ../makeParaView  2010-04-18 21:49:00.611392700 +0100
 +++ ./makeParaView  2010-04-18 21:50:31.609831213 +0100
 @@ -45,13 +45,13 @@
@@ -245,13 +245,13 @@ echo '--- ../makeParaView  2010-04-18 21:49:00.611392700 +0100
 -PYTHON_LIBRARY=""
 +PYTHON_LIBRARY="/usr/lib/libpython2.6.so"
  # PYTHON_LIBRARY="/usr/lib64/libpython2.6.so.1.0"
- 
+
  # MESA graphics support:
  withMESA=false
  MESA_INCLUDE="/usr/include/GL"
 -MESA_LIBRARY="/usr/lib64/libOSMesa.so"
 +MESA_LIBRARY="/usr/lib/libOSMesa.so"
- 
+
  # extra QT gui support (useful for re-using the installation for engrid)
  withQTSUPPORT=true
 @@ -75,6 +75,7 @@
@@ -267,7 +267,7 @@ echo '--- ../makeParaView  2010-04-18 21:49:00.611392700 +0100
  case "$Script" in *-mesa*)   withMESA=true;; esac
  case "$Script" in *-qt*)     withQTSUPPORT=true;; esac
 +case "$Script" in *-noqt*)     withQTSUPPORT=false;; esac
- 
+
  #
  # various building stages
 @@ -181,6 +183,10 @@
@@ -314,7 +314,7 @@ function patchMakeQtScript()
 tmpVar=$PWD
 cd_openfoam
 cd ThirdParty-1.6/
-  
+
 echo '--- ../makeQt 2010-04-26 23:10:03.000000000 +0100
 +++ makeQt  2010-04-26 23:11:10.000000000 +0100
 @@ -45,7 +45,7 @@
@@ -323,7 +323,7 @@ echo '--- ../makeQt 2010-04-26 23:10:03.000000000 +0100
          -nomake demos \
 -        -nomake examples
 +        -nomake examples $1
- 
+
      if [ -r /proc/cpuinfo ]
      then' | patch -p0
 
@@ -338,7 +338,7 @@ tmpVar=$PWD
 cd_openfoam
 cd OpenFOAM-${OF_LONG_VERSION}/wmake/
 
-patch -p0 < "$PATHOF/$WMAKEPATCHFILE"
+patch -p0 < "${WMAKEPATCHFILE[1]}"
 
 cd $tmpVar
 unset tmpVar
@@ -349,16 +349,16 @@ function patchParaFoamSys()
 {
   tmpVar=$PWD
   cd_openfoam
-  cd OpenFOAM-1.6.x/bin/
+  cd OpenFOAM-${OF_LONG_VERSION}/bin/
 
   #add kitware paraview to path
-  if [ "x$USE_KITWARE_PV" == "xYes" ]; then
-echo '--- orig/'$PFOAM_PATCHFILE'  2010-08-28 11:35:05.000000000 +0100
-+++ ./'$PFOAM_PATCHFILE' 2010-08-29 13:10:41.000000000 +0100
+  if [ "x$USE_KITWARE_PV" == "xon" ]; then
+echo '--- orig/'${PFOAM_PATCHFILE[0]}'  2010-08-28 11:35:05.000000000 +0100
++++ ./'${PFOAM_PATCHFILE[0]}' 2010-08-29 13:10:41.000000000 +0100
 @@ -33,6 +33,8 @@
  #------------------------------------------------------------------------------
  Script=${0##*/}
- 
+
 +export PATH='$PATHOF'/ThirdParty-1.6/'$KV_PV_DIR'/bin:$PATH
 +
  usage() {
@@ -369,11 +369,11 @@ echo '--- orig/'$PFOAM_PATCHFILE'  2010-08-28 11:35:05.000000000 +0100
 
   #check paraview version
   #PV writes version string to stderr...
-  if [ "x$USE_KITWARE_PV" == "xYes" ]; then
+  if [ "x$USE_KITWARE_PV" == "xon" ]; then
     cd $PATHOF/ThirdParty-1.6/$KV_PV_DIR/bin
-    ./paraview -V 2> $PATHOF/OpenFOAM-1.6.x/bin/pv.log
+    ./paraview -V 2> $PATHOF/OpenFOAM-${OF_LONG_VERSION}/bin/pv.log
     cd_openfoam
-    cd OpenFOAM-1.6.x/bin/
+    cd OpenFOAM-${OF_LONG_VERSION}/bin/
   else
     paraview -V 2> pv.log
   fi
@@ -385,18 +385,18 @@ echo '--- orig/'$PFOAM_PATCHFILE'  2010-08-28 11:35:05.000000000 +0100
       echo "Paraview version could not be determined!"
   else
 
-echo '--- orig/'$PFOAM_PATCHFILE'  2010-08-28 11:35:05.000000000 +0100
-+++ ./'$PFOAM_PATCHFILE' 2010-08-29 13:10:41.000000000 +0100
+echo '--- orig/'${PFOAM_PATCHFILE[0]}'  2010-08-28 11:35:05.000000000 +0100
++++ ./'${PFOAM_PATCHFILE[0]}' 2010-08-29 13:10:41.000000000 +0100
 @@ -56,6 +58,9 @@
     PRECISION="$(cat system/controlDict | grep '"'"'timePrecision'"'"' | awk '"'"'{print $2}'"'"')"
  }
- 
+
 +#injected here by the installer
 +export Paraview_VERSION='$Paraview_VERSION'
 +
  # get a sensible caseName
  caseName=${PWD##*/}
- 
+
 ' | patch -p0
 
   fi

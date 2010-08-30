@@ -7,6 +7,6 @@
 
 
 #Code -----------------------------------------
-echo "Sourcing patching functions for OpenFOAM 1.6.x, specific to Ubuntu..."
+echo "Sourcing patching functions for OpenFOAM ${OF_LONG_VERSION}, specific to Ubuntu..."
 
 #-- FUNCTIONS -----------------------------------------------------

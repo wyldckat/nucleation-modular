@@ -37,33 +37,33 @@ function check_options_sanity()
 {
   #Check the sanity of the options, depending on the target system
   check_options_sanity_for_system
-  
+
   if [ "x$INSTALLMODE" != "xcustom" ] && \
-     ! [ "$INSTALLMODE" == "fresh" -a "$USE_REPO_PV" == "Yes" -o "$USE_KITWARE_PV" == "Yes" ]; then
+     ! [ "x$INSTALLMODE" == "xfresh" -a "x$USE_REPO_PV" == "xon" -o "x$USE_KITWARE_PV" == "xon" ]; then
 
     if [ "x$INSTALLMODE" == "xserver" ]; then
-        BUILD_PARAVIEW=Yes
-        BUILD_PARAVIEW_WITH_GUI=No
-        BUILD_PARAVIEW_WITH_MPI=Yes
+        BUILD_PARAVIEW=on
+        BUILD_PARAVIEW_WITH_GUI=off
+        BUILD_PARAVIEW_WITH_MPI=on
         dialog --sleep 6 --backtitle "$GUI_BACKTITLE"   \
         --title "Server Install settings" \
-        --infobox "Installer in server install mode. \n ParaView will be build without GUI and with MPI support" 5 70  
+        --infobox "Installer in server install mode. \n ParaView will be build without GUI and with MPI support" 5 70
     fi
 
     #verifying ParaView Build options, just in case
-    if [ "x$BUILD_PARAVIEW" == "xNo" ]; then
-      if [ "x$BUILD_PARAVIEW_WITH_MPI" == "xYes" -o "x$BUILD_PARAVIEW_WITH_PYTHON" == "xYes" -o \
-          "x$BUILD_PARAVIEW_WITH_GUI" == "xNo" -o "x$BUILD_QT" == "xYes" ]; then
-          BUILD_PARAVIEW=Yes
+    if [ "x$BUILD_PARAVIEW" == "xoff" ]; then
+      if [ "x$BUILD_PARAVIEW_WITH_MPI" == "xon" -o "x$BUILD_PARAVIEW_WITH_PYTHON" == "xon" -o \
+          "x$BUILD_PARAVIEW_WITH_GUI" == "xoff" -o "x$BUILD_QT" == "xon" ]; then
+          BUILD_PARAVIEW=on
           dialog --sleep 6 --backtitle "$GUI_BACKTITLE"   \
           --title "Non-optional setting detected!" \
           --infobox "\nParaView will need to be built, since the pre-built version isn't enough for the chosen options." 10 70
       fi
     fi
 
-    if [ "x$BUILD_PARAVIEW" == "xYes" -a "x$BUILD_PARAVIEW_WITH_MPI" == "xNo" -a \
-        "x$BUILD_PARAVIEW_WITH_GUI" == "xNo" ]; then
-        BUILD_PARAVIEW_WITH_MPI=Yes
+    if [ "x$BUILD_PARAVIEW" == "xon" -a "x$BUILD_PARAVIEW_WITH_MPI" == "xoff" -a \
+        "x$BUILD_PARAVIEW_WITH_GUI" == "xoff" ]; then
+        BUILD_PARAVIEW_WITH_MPI=on
         dialog --sleep 6 --backtitle "$GUI_BACKTITLE"   \
         --title "Bad options detected!" \
         --infobox "\nParaView must be built with either MPI or GUI. Since you've defined both Off, will assume server mode and turn on MPI." 10 70

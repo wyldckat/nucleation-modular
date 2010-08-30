@@ -95,7 +95,7 @@ function pick_openfoam_path()
   while : ; do
     PATHOF=$(dialog --stdout \
     --backtitle "$GUI_BACKTITLE" \
-    --inputbox 'Choose the install path: < default: ~/OpenFOAM >' 8 60 ~/OpenFOAM ) 
+    --inputbox 'Choose the install path: < default: ~/OpenFOAM >' 8 60 ~/OpenFOAM )
 
     if [ x"$?" == x"0" ]; then
       break;
@@ -109,7 +109,7 @@ function should_keep_inst_log()
 {
   #Base log folder
   BASE_LOG_FOLDER="${PATHOF}/buildLogs"
-  
+
   #Logging option Dialog
   while : ; do
     LOG_OUTPUTS=$(dialog --stdout \
@@ -159,15 +159,12 @@ function define_base_custom_options()
 {
   if [ "x$INSTALLMODE" == "xcustom" ]; then
 
-    CUSTOMOPTS_OFOPTIONALS=No
-    CUSTOMOPTS_PARAVIEW=No
-
     while : ; do
       CUSTOMOPTS=$(dialog --stdout --separate-output \
       --backtitle "$GUI_BACKTITLE"         \
       --checklist "Build only parts, excluding OpenFOAM: < Space to select ! >" 15 65 2 \
-      1 "Build OpenFOAM optionals" off \
-      2 "Build ParaView with(out) Qt" off )
+      1 "Build OpenFOAM optionals" $CUSTOMOPTS_OFOPTIONALS \
+      2 "Build ParaView with(out) Qt" $CUSTOMOPTS_PARAVIEW )
 
       if [ x"$?" == x"0" ]; then
         break;
@@ -177,12 +174,14 @@ function define_base_custom_options()
     done
 
     #Take care of unpack settings from PVSETTINGSOPTS
+    CUSTOMOPTS_OFOPTIONALS=off
+    CUSTOMOPTS_PARAVIEW=off
     for setting in $CUSTOMOPTS ; do
-      if [ $setting == 1 ] ; then CUSTOMOPTS_OFOPTIONALS=Yes ; fi
-      if [ $setting == 2 ] ; then CUSTOMOPTS_PARAVIEW=Yes ; fi
+      if [ $setting == 1 ] ; then CUSTOMOPTS_OFOPTIONALS=on ; fi
+      if [ $setting == 2 ] ; then CUSTOMOPTS_PARAVIEW=on ; fi
     done
 
-    if [ "x$CUSTOMOPTS_OFOPTIONALS" == "xNo" -a "x$CUSTOMOPTS_PARAVIEW" == "xNo" ]; then
+    if [ "x$CUSTOMOPTS_OFOPTIONALS" == "xoff" -a "x$CUSTOMOPTS_PARAVIEW" == "xoff" ]; then
       clear
       echo "Nothing to do... exiting."
       exit 0
@@ -190,8 +189,8 @@ function define_base_custom_options()
 
   elif [ "x$INSTALLMODE" != "xupdate" ]; then
 
-    CUSTOMOPTS_OFOPTIONALS=Yes
-    CUSTOMOPTS_PARAVIEW=Yes
+    CUSTOMOPTS_OFOPTIONALS=on
+    CUSTOMOPTS_PARAVIEW=on
 
   fi
 }
@@ -200,26 +199,21 @@ function define_base_custom_options()
 #Define options for OpenFOAM optionals
 function define_custom_optionals()
 {
-  BUILD_DOCUMENTATION=
-  USE_ALIAS_FOR_BASHRC=No ; USE_OF_GCC=No
-  BUILD_CCM26TOFOAM=No
-  USE_REPO_PV=No ; USE_KITWARE_PV=No
-  
   #Define options for OpenFOAM optionals, specific to the installation system
   define_system_custom_optionals
 
-  if [ "x$CUSTOMOPTS_OFOPTIONALS" == "xYes" ]; then
+  if [ "x$CUSTOMOPTS_OFOPTIONALS" == "xon" ]; then
     #Settings choosing Dialog
     while : ; do
       SETTINGSOPTS=$(dialog --stdout --separate-output \
       --backtitle "$GUI_BACKTITLE"         \
       --checklist "Choose Install settings: < Space to select ! >" 15 50 6 \
-      1 "Build OpenFOAM docs" off \
-      2 "Use startFoam alias" on \
-      3 "Use OpenFOAM gcc compiler" on \
-      4 "Build ccm26ToFoam" off \
-      5 "Install ParaView from repository" off \
-      6 "Download latest ParaView from Kitware" off )
+      1 "Build OpenFOAM docs" $BUILD_DOCUMENTATION \
+      2 "Use startFoam alias" $USE_ALIAS_FOR_BASHRC \
+      3 "Use OpenFOAM gcc compiler" $USE_OF_GCC \
+      4 "Build ccm26ToFoam" $BUILD_CCM26TOFOAM \
+      5 "Install ParaView from repository" $USE_REPO_PV \
+      6 "Download latest ParaView from Kitware" $USE_KITWARE_PV )
 
       if [ x"$?" == x"0" ]; then
         break;
@@ -229,13 +223,19 @@ function define_custom_optionals()
     done
 
     #Take care of unpack settings from SETTINGSOPTS
+    BUILD_DOCUMENTATION=off
+    USE_ALIAS_FOR_BASHRC=off
+    USE_OF_GCC=off
+    BUILD_CCM26TOFOAM=off
+    USE_REPO_PV=off
+    USE_KITWARE_PV=off
     for setting in $SETTINGSOPTS ; do
-      if [ $setting == 1 ] ; then BUILD_DOCUMENTATION=doc ; fi
-      if [ $setting == 2 ] ; then USE_ALIAS_FOR_BASHRC=Yes ; fi
-      if [ $setting == 3 ] ; then USE_OF_GCC=Yes ; fi
-      if [ $setting == 4 ] ; then BUILD_CCM26TOFOAM=Yes ; fi
-      if [ $setting == 5 ] ; then USE_REPO_PV=Yes ; fi
-      if [ $setting == 6 ] ; then USE_KITWARE_PV=Yes ; fi
+      if [ $setting == 1 ] ; then BUILD_DOCUMENTATION=on ; fi
+      if [ $setting == 2 ] ; then USE_ALIAS_FOR_BASHRC=on ; fi
+      if [ $setting == 3 ] ; then USE_OF_GCC=on ; fi
+      if [ $setting == 4 ] ; then BUILD_CCM26TOFOAM=on ; fi
+      if [ $setting == 5 ] ; then USE_REPO_PV=on ; fi
+      if [ $setting == 6 ] ; then USE_KITWARE_PV=on ; fi
     done
   fi
 }
@@ -244,13 +244,6 @@ function define_custom_optionals()
 #Define options for OpenFOAM optionals
 function define_paraview_options()
 {
-  BUILD_QT=No
-  BUILD_PARAVIEW=No
-  BUILD_PARAVIEW_WITH_GUI=No
-  BUILD_PARAVIEW_WITH_MPI=No
-  BUILD_PARAVIEW_WITH_PYTHON=No
-  BUILD_PARAVIEW_WITH_OSMESA=No
-
   #ParaView configurations for a fresh install
   #skip Paraview Build options if install from Repo or Kitware was selected
   if [ "x$CUSTOMOPTS_PARAVIEW" == "xYes" ] && \
@@ -259,12 +252,12 @@ function define_paraview_options()
       PVSETTINGSOPTS=$(dialog --stdout --separate-output \
       --backtitle "$GUI_BACKTITLE"         \
       --checklist "Choose ParaView settings: < Space to select ! >" 16 59 6 \
-      1 "Do custom build of Qt 4.3.5 ?" off \
-      2 "Do custom build of ParaView ?" off \
-      3 "Build ParaView with GUI ?" on \
-      4 "Build ParaView with Python support ?" off \
-      5 "Build ParaView with MPI support ?" off \
-      6 "Build ParaView with OSMesa (without GUI) ?" off )
+      1 "Do custom build of Qt ?" $BUILD_QT \
+      2 "Do custom build of ParaView ?" $BUILD_PARAVIEW \
+      3 "Build ParaView with GUI ?" $BUILD_PARAVIEW_WITH_GUI \
+      4 "Build ParaView with Python support ?" $BUILD_PARAVIEW_WITH_PYTHON \
+      5 "Build ParaView with MPI support ?" $BUILD_PARAVIEW_WITH_MPI \
+      6 "Build ParaView with OSMesa (without GUI) ?" $BUILD_PARAVIEW_WITH_OSMESA )
 
       if [ x"$?" == x"0" ]; then
         break;
@@ -274,13 +267,19 @@ function define_paraview_options()
     done
 
     #Take care of unpack settings from PVSETTINGSOPTS
+    BUILD_QT=off
+    BUILD_PARAVIEW=off
+    BUILD_PARAVIEW_WITH_GUI=off
+    BUILD_PARAVIEW_WITH_PYTHON=off
+    BUILD_PARAVIEW_WITH_MPI=off
+    BUILD_PARAVIEW_WITH_OSMESA=off
     for setting in $PVSETTINGSOPTS ; do
-      if [ $setting == 1 ] ; then BUILD_QT=Yes ; fi
-      if [ $setting == 2 ] ; then BUILD_PARAVIEW=Yes ; fi
-      if [ $setting == 3 ] ; then BUILD_PARAVIEW_WITH_GUI=Yes ; fi
-      if [ $setting == 4 ] ; then BUILD_PARAVIEW_WITH_PYTHON=Yes ; fi
-      if [ $setting == 5 ] ; then BUILD_PARAVIEW_WITH_MPI=Yes ; fi
-      if [ $setting == 6 ] ; then BUILD_PARAVIEW_WITH_OSMESA=Yes ; fi
+      if [ $setting == 1 ] ; then BUILD_QT=on ; fi
+      if [ $setting == 2 ] ; then BUILD_PARAVIEW=on ; fi
+      if [ $setting == 3 ] ; then BUILD_PARAVIEW_WITH_GUI=on ; fi
+      if [ $setting == 4 ] ; then BUILD_PARAVIEW_WITH_PYTHON=on ; fi
+      if [ $setting == 5 ] ; then BUILD_PARAVIEW_WITH_MPI=on ; fi
+      if [ $setting == 6 ] ; then BUILD_PARAVIEW_WITH_OSMESA=on ; fi
     done
   fi
 }
@@ -289,15 +288,15 @@ function define_paraview_options()
 function gcc_related_options()
 {
 
-  if [ "x$USE_OF_GCC" == "xYes" ]; then
+  if [ "x$USE_OF_GCC" == "xon" ]; then
     if [ "$arch" == "x64" ]; then
       while : ; do
         GCCSETTINGSOPTS=$(dialog --stdout --separate-output \
         --backtitle "$GUI_BACKTITLE"         \
         --checklist "Choose Install settings: < Space to select ! >" 10 60 2 \
-        1 "Build GCC? (otherwise use pre-compiled version)" off \
-        2 "Build GCC in 64bit mode only?" off )
-        
+        1 "Build GCC? (otherwise use pre-compiled version)" $BUILD_GCC \
+        2 "Build GCC in 64bit mode only?" $BUILD_GCC_STRICT_64BIT )
+
         if [ x"$?" == x"0" ]; then
           break;
         else
@@ -306,12 +305,12 @@ function gcc_related_options()
       done
 
     elif [ "$arch" == "x86" ]; then
-      while : ; do  
+      while : ; do
         GCCSETTINGSOPTS=$(dialog --stdout --separate-output \
         --backtitle "$GUI_BACKTITLE"         \
         --checklist "Choose Install settings: < Space to select ! >" 10 60 1 \
-        1 "Build GCC? (otherwise use pre-compiled version)" off )
-        
+        1 "Build GCC? (otherwise use pre-compiled version)" $BUILD_GCC )
+
         if [ x"$?" == x"0" ]; then
           break;
         else
@@ -320,9 +319,9 @@ function gcc_related_options()
       done
     fi
 
-    BUILD_GCC=No
-    BUILD_GCC_STRICT_64BIT=No #this is optionable for x86_64 only
     #Take care of unpack
+    BUILD_GCC=off
+    BUILD_GCC_STRICT_64BIT=off #this is optionable for x86_64 only
     for setting in $GCCSETTINGSOPTS ; do
       if [ $setting == 1 ] ; then BUILD_GCC=Yes ; fi
       if [ $setting == 2 ] ; then BUILD_GCC_STRICT_64BIT=Yes ; fi
@@ -349,7 +348,7 @@ function pick_download_mirror()
     puzzle 'Switzerland' \
     kent 'UK' \
     internap 'US' )
-    
+
     if [ x"$?" == x"0" ]; then
       break;
     else
@@ -397,7 +396,7 @@ function pick_download_mirror()
     done
     ) | dialog --backtitle "$GUI_BACKTITLE" \
         --title "Mirror selector" --gauge "Starting..." 20 60 $percent
-    
+
     # due to the sub-shell execution, have to get again the mirror's name
     mirror=`grep "picked:" tempmirror.log | cut -c20-`
     rm -f tempmirror.log
@@ -413,19 +412,19 @@ function final_interface_before_install()
   #Show to user the detected settings, last chance to cancel the installer
   while : ; do
     (dialog --backtitle "$GUI_BACKTITLE" \
---title "Final settings - <ESC> to abort the Installer" \
+--title "Final settings (summary) - <ESC> to abort the Installer" \
 --msgbox "-------------------------------------------------------------------------\n
-| =========   Detected that you are running: Ubuntu $SYSTEM_VERSION - $arch\n
+| =========   Detected that you are running: $INST_SYSTEM $SYSTEM_VERSION - $arch\n
 | \\      /    The choosed mirror is: $mirror\n
 |  \\    /     Logging: $LOG_OUTPUTS\n
 |   \\  /      Install mode: $INSTALLMODE\n
 |    \\/       Run apt-get upgrade ? $DOUPGRADE\n
-| *installOF* Build documentation ? $BUILD_DOCUMENTATION <nothing means no>\n
+| *installOF* Build documentation ? $BUILD_DOCUMENTATION\n
 | *settings*  Use startFoam alias ? $USE_ALIAS_FOR_BASHRC\n
 |             Use OpenFOAM gcc ? $USE_OF_GCC\n
 -------------------------------------------------------------------------\n
 !For more info see documentation on $MAIN_PAGE_URL" 15 80)
-    
+
     if [ x"$?" == x"0" ]; then
       break;
     else

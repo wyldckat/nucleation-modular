@@ -11,10 +11,10 @@ Done:
   - systems contemplated for now (variable INST_SYSTEM):
       ubuntu
       generic
-    
+
     - SYSTEM_VERSION - here is kept the system's version
-    
-    - files and folders in the base folders will have same scripts of the 
+
+    - files and folders in the base folders will have same scripts of the
       same name in the folders $INST_SYSTEM:
         common
           aux_functions
@@ -31,7 +31,7 @@ Done:
         of16x/$INST_SYSTEM
           patches
           user_functions
-          
+
 
   - create a new function that detects what Linux box it's running on.
   Returns "Generic" if not detected. <- didn't bother creating a function, it's
@@ -45,6 +45,14 @@ Done:
     But if you just want to not log something, redirect to >&4. For example:
         echo "This won't be logged into the master script!" >&4
 
+  - Move all building logs into a single folder, i.e., "$PATHOF/buildLogs", with subfolders per OF version.
+
+  - change how our repo files are being downloaded/copied. Now they are assumed to be already downloaded
+    (all came in a tar.gz package), so now what's left is to define the source folder+file and the file name
+
+  - change options given via dialog from Yes/No to on/off, since this way it will be simpler
+    to do some pre-setting of saved variables and such
+
 Tasks to do:
 
   - modify the "*versionning* mechanism" that is tightly coupled to Ubuntu
@@ -52,7 +60,7 @@ Tasks to do:
   not Ubuntu versions; <- done, I think, still have to go through the functions to confirm
 
   - Now with "Ubuntu" and "Generic" options, put code that is "Ubuntu
-  only" in one module script and copy-paste-change those same functions into 
+  only" in one module script and copy-paste-change those same functions into
   another module script for the "Unknown Linux" option.
       ^- half done, still have to create the Generic counterpart
 
@@ -70,8 +78,6 @@ Unsorted tasks:
       installations (like OSMesa in ParaView);
    4. provide a summary of items that failed to build at the end of the
    installation;
-   5. move all building logs into a single folder, i.e.,
-   "$PATHOF/BuildLogs";
    6. make a nice little package with the related failed items logs, for the
    user to post online;
    7. add option to install Discretizer into the script; <- postponed
@@ -95,7 +101,6 @@ Unsorted tasks:
    2. make the script work with OpenFOAM 1.7.x:
       1. about 50% of the patches made for OpenFOAM 1.6.x are no longer
       usable in OpenFOAM 1.7.x, so fixing/removing them is a task;
-      2. no longer exists an option to neither build nor use OpenFOAM gcc;
       3. have to figure out with which versions of Qt does ParaView 3.8.0
       build and work well!
 
@@ -107,4 +112,4 @@ Tasks yet to do in the documentation:
    - create a simple tutorial on how to use the script (i.e., use the
    default/most used options);
    - create a more detailed tutorial, explaining the *repercussions* of each
-   option :) . 
+   option :) .

@@ -20,6 +20,59 @@ fi
 
 #FUNCTIONS ------------------------------------------------------------------------------
 
+#Define files (including paths) to the files this script provides
+function define_script_s_files()
+{
+  #Define files (including paths) to the files this script provides for common/$system
+  define_script_s_files_system
+
+  #Define files (including paths) to the files this script provides for of$OF_SHORT_VERSION
+  define_script_s_files_ofv
+
+  #Repository paraview -> upgraded paraFoam script
+  if [ "x$USE_REPO_PV" == "xon" -o "x$USE_KITWARE_PV" == "xon" ]; then
+    PFOAM_PATCHFILE[0]="paraFoamSys"
+    PFOAM_PATCHFILE[1]="${SCRIPT_WORKFOLDER}/common/files/${PFOAM_PATCHFILE[0]}"
+  fi
+
+  #patch file for tweaking timing option into wmake
+  WMAKEPATCHFILE[0]="patchWmake"
+  WMAKEPATCHFILE[1]="${SCRIPT_WORKFOLDER}/common/files/${WMAKEPATCHFILE[0]}"
+}
+
+
+function define_default_user_options()
+{
+  LOG_OUTPUTS=Yes             #Yes | No
+  INSTALLMODE=fresh           #fresh | update | server | custom
+  CUSTOMOPTS_OFOPTIONALS=off  #on | off
+  CUSTOMOPTS_PARAVIEW=off     #on | off
+
+  BUILD_DOCUMENTATION=off     #on | off
+  USE_ALIAS_FOR_BASHRC=off    #on | off
+  USE_OF_GCC=off              #on | off
+  BUILD_CCM26TOFOAM=off       #on | off
+  USE_REPO_PV=off             #on | off
+  USE_KITWARE_PV=off          #on | off
+
+  BUILD_QT=off                   #on | off
+  BUILD_PARAVIEW=off             #on | off
+  BUILD_PARAVIEW_WITH_GUI=on     #on | off
+  BUILD_PARAVIEW_WITH_PYTHON=off #on | off
+  BUILD_PARAVIEW_WITH_MPI=off    #on | off
+  BUILD_PARAVIEW_WITH_OSMESA=off #on | off
+
+  BUILD_GCC=off               #on | off
+  BUILD_GCC_STRICT_64BIT=off  #on | off
+
+  #findClosest | optusnet | ufpr | nchc | mesh | garr | jaist | puzzle | kent | internap
+  mirror=mesh
+
+  #define default options that are system dependent
+  define_default_user_options_system
+}
+
+
 #provide the user with a progress bar and timings for building gcc
 function build_gcc_progress_dialog()
 {
@@ -64,7 +117,7 @@ function build_gcc_progress_dialog()
       fi
     done
     ) | dialog --backtitle "$GUI_BACKTITLE" \
-        --title "Building gcc" --gauge "Starting..." 20 80 $percent
+        --title "Building gcc" --gauge "Starting..." 20 80 $percent >&4
   fi
 
   #monitor here too, to wait for kill code, when issued
@@ -81,8 +134,8 @@ function build_gcc_ctrl_c_triggered()
 #build gcc that comes with OpenFOAM
 function build_openfoam_gcc()
 {
-  if [ "x$BUILD_GCC" == "xYes" ]; then
-    
+  if [ "x$BUILD_GCC" == "xon" ]; then
+
     #set up environment, just in case we forget about it!
     if [ "x$WM_PROJECT_DIR" == "x" ]; then
       setOpenFOAMEnv
@@ -94,22 +147,22 @@ function build_openfoam_gcc()
     #purge existing gcc
     if [ -e "$BUILD_GCC_ROOT" ]; then
       rm -rf $BUILD_GCC_ROOT
-    fi 
+    fi
 
-    if [ "x$BUILD_GCC_STRICT_64BIT" == "xYes" ]; then
+    if [ "x$BUILD_GCC_STRICT_64BIT" == "xon" ]; then
       BUILD_GCC_OPTION="--disable-multilib"
     fi
-    
+
     BUILD_GCC_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/build_gcc.log"
-    
+
     #set up traps...
     trap build_gcc_ctrl_c_triggered SIGINT SIGQUIT SIGTERM
 
     echo "------------------------------------------------------"
     echo "Build gcc:"
-    
+
     #launch makeGcc asynchronously
-    bash -c "time ./$GCCMODED_MAKESCRIPT $BUILD_GCC_OPTION" > "$BUILD_GCC_LOG" 2>&1 &
+    bash -c "time ./${GCCMODED_MAKESCRIPT[0]} $BUILD_GCC_OPTION" > "$BUILD_GCC_LOG" 2>&1 &
     BUILD_GCC_PID=$!
     BUILD_GCC_START_TIME=`date`
     BUILD_GCC_UPDATE_TIME=$BUILD_GCC_START_TIME
@@ -117,7 +170,7 @@ function build_openfoam_gcc()
     #track build progress
     percent=0
     build_gcc_progress_dialog
-    
+
     #wait for kill code to change
     clear
     if ! ps -p $BUILD_GCC_PID > /dev/null && [ "x$BUILD_GCC_MUST_KILL" != "x" ]; then
@@ -126,7 +179,7 @@ function build_openfoam_gcc()
 
     #clear traps
     trap - SIGINT SIGQUIT SIGTERM
-    
+
     echo "------------------------------------------------------"
     echo "Build gcc-4.3.3:"
     if [ -e "$BUILD_GCC_ROOT/bin/gcc" ]; then
@@ -134,7 +187,7 @@ function build_openfoam_gcc()
       echo -e "Building gcc finished successfully at:\n\t`date`"
       echo "gcc is ready to be used."
 
-      #TODO: this won't be necessary if we build cmake too, since then there won't be 
+      #TODO: this won't be necessary if we build cmake too, since then there won't be
       #any more dependencies to the system's libraries!
       if [ "$arch" == "x64" -a "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
         link_gcc433_libraries_to_system
@@ -148,7 +201,7 @@ function build_openfoam_gcc()
       BUILD_GCC_FAILED="Yes"
     fi
     echo "------------------------------------------------------"
-    
+
   fi
 }
 
@@ -169,7 +222,7 @@ function build_awopenfoam_progress_dialog()
         BUILD_AWOPENFOAM_MAKECOUNT=`grep 'WMAKE timing start' "$BUILD_AWOPENFOAM_LOG" | wc -l`
         nowpercent=`expr $BUILD_AWOPENFOAM_MAKECOUNT \* 100 / $BUILD_AWOPENFOAM_ESTIM_BUILD_COUNT`
       fi
-      
+
       if [ "x$nowpercent" != "x$percent" ]; then
         percent=$nowpercent
         BUILD_AWOPENFOAM_UPDATE_TIME=`date`
@@ -196,7 +249,7 @@ function build_awopenfoam_progress_dialog()
       fi
     done
     ) | dialog --backtitle "$GUI_BACKTITLE" \
-        --title "Building OpenFOAM" --gauge "Starting..." 20 80 $percent
+        --title "Building OpenFOAM" --gauge "Starting..." 20 80 $percent >&4
   fi
 
   #monitor here too, to wait for kill code, when issued
@@ -247,7 +300,7 @@ function allwmake_openfoam()
   #track build progress
   percent=0
   build_awopenfoam_progress_dialog
-  
+
   #wait for kill code to change
   clear
   if ! ps -p $BUILD_AWOPENFOAM_PID > /dev/null && [ "x$BUILD_AWOPENFOAM_MUST_KILL" != "x" ]; then
@@ -282,7 +335,7 @@ function build_awopenfoam_docs_progress_dialog()
         BUILD_AWOPENFOAM_NOWCOUNT=`cat "$BUILD_AWOPENFOAMDOC_LOG" | grep -e "^Parsing file" -e "^Generating code for file" -e "^Generating docs for" -e "^Generating dependency graph for directory" | wc -l`
         nowpercent=`expr $BUILD_AWOPENFOAM_NOWCOUNT \* 100 / $BUILD_AWOPENFOAMDOC_ESTIMCOUNT`
       fi
-      
+
       if [ "x$nowpercent" != "x$percent" ]; then
         percent=$nowpercent
         BUILD_AWOPENFOAM_UPDATE_TIME=`date`
@@ -310,7 +363,7 @@ function build_awopenfoam_docs_progress_dialog()
       fi
     done
     ) | dialog --backtitle "$GUI_BACKTITLE" \
-        --title "Building OpenFOAM" --gauge "Starting..." 24 80 $percent
+        --title "Building OpenFOAM" --gauge "Starting..." 24 80 $percent >&4
   fi
 
   #monitor here too, to wait for kill code, when issued
@@ -360,7 +413,7 @@ function allwmake_openfoam_docs()
     #track build progress
     percent=0
     build_awopenfoam_docs_progress_dialog
-    
+
     #wait for kill code to change
     clear
     if ! ps -p $BUILD_AWOPENFOAM_PID > /dev/null && [ "x$BUILD_AWOPENFOAM_MUST_KILL" != "x" ]; then
@@ -386,13 +439,13 @@ function continue_after_failed_openfoam()
     echo -e "\n------------------------------------------------------\n"
     echo "Although the previous step seems to have failed, do you wish to continue with the remaining steps?"
 
-    if [ "x$BUILD_DOCUMENTATION" != "x" -o "x$BUILD_CCM26TOFOAM" == "xYes" -o \
-         "x$BUILD_PARAVIEW" == "xYes" -o "x$BUILD_QT" == "xYes" ]; then 
+    if [ "x$BUILD_DOCUMENTATION" == "xon" -o "x$BUILD_CCM26TOFOAM" == "xon" -o \
+         "x$BUILD_PARAVIEW" == "xon" -o "x$BUILD_QT" == "xon" ]; then
       echo "Missing steps are:"
-      if [ "x$BUILD_DOCUMENTATION" != "x" ]; then echo "- Building OpenFOAM's code documentation"; fi
-      if [ "x$BUILD_QT" == "xYes" ]; then echo "- Building Qt"; fi
-      if [ "x$BUILD_PARAVIEW" == "xYes" ]; then echo "- Building ParaView"; fi
-      if [ "x$BUILD_CCM26TOFOAM" == "xYes" ]; then echo "- Building ccm26ToFoam"; fi
+      if [ "x$BUILD_DOCUMENTATION" == "xon" ]; then echo "- Building OpenFOAM's code documentation"; fi
+      if [ "x$BUILD_QT" == "xon" ]; then echo "- Building Qt"; fi
+      if [ "x$BUILD_PARAVIEW" == "xon" ]; then echo "- Building ParaView"; fi
+      if [ "x$BUILD_CCM26TOFOAM" == "xon" ]; then echo "- Building ccm26ToFoam"; fi
     fi
 
     echo "Continue? (yes or no): "
@@ -449,7 +502,7 @@ function check_installation()
     case $casestat in
       yes | y | Y | Yes | YES)
         FILES_TO_REPORT="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/foamIT.log $BASE_LOG_FOLDER/$OF_SHORT_VERSION/make.log"
-        if [ "$LOG_OUTPUTS" == "Yes" ]; then
+        if [ "x$LOG_OUTPUTS" == "xYes" ]; then
           FILES_TO_REPORT="$FILES_TO_REPORT $LOG_OUTPUTS_FILE_LOCATION"
         fi
         echo "Compressing file $WM_PROJECT_DIR/report.tar.gz with files: $FILES_TO_REPORT"
@@ -460,7 +513,7 @@ function check_installation()
         ;;
     esac
     unset casestat
-    
+
     continue_after_failed_openfoam
   fi
   unset IFERRORSDETECTED
@@ -500,7 +553,7 @@ function final_messages_for_clean_install()
   if [ "x$FOAMINSTALLFAILED" == "x" ]; then
 
     #If using bash alias, inform to use it to run!
-    if [ "x$USE_ALIAS_FOR_BASHRC" == "xYes" ]; then
+    if [ "x$USE_ALIAS_FOR_BASHRC" == "xon" ]; then
       echo "Installation complete - You have chosen to use bash alias"
       echo "To start using OpenFOAM, you'll have to start a new terminal first;"
       echo -e "then, type:\n\tstartFoam\nto activate the OpenFOAM environment."
@@ -510,11 +563,11 @@ function final_messages_for_clean_install()
       echo "To start using OpenFOAM, you'll have to start a new terminal first."
       echo "------------------------------------------------------"
     fi
-  
+
   else
 
     echo "Installation failed. Please don't forget to check the provided forum link for solutions on the provided link, and/or report the error."
-    if [ "x$USE_ALIAS_FOR_BASHRC" == "xYes" ]; then
+    if [ "x$USE_ALIAS_FOR_BASHRC" == "xon" ]; then
       echo "Nonetheless, next time you launch a new terminal/console, you can set up the OpenFOAM environment by typing: startFoam"
     else
       echo "Nonetheless, next time you launch a new terminal/console, the OpenFOAM environment will be ready to be used."
@@ -532,13 +585,13 @@ function OpenFOAM_git_pull()
   fi
 
   cd $WM_PROJECT_DIR
-  
+
   echo "------------------------------------------------------"
   echo "Let's do a git pull"
   echo "------------------------------------------------------"
   git pull
   OpenFOAM_git_error=$?
-  
+
   continue_after_failed_openfoam_git
 }
 
@@ -551,7 +604,7 @@ function build_Qt_progress_dialog()
     killgroup $BUILD_QT_PID
 
   else
-    
+
     ( #while true is used as a containment cycle...
     while : ;
     do
@@ -585,7 +638,7 @@ function build_Qt_progress_dialog()
       fi
     done
     ) | dialog --backtitle "$GUI_BACKTITLE" \
-        --title "Building Qt" --gauge "Starting..." 20 80 $percent
+        --title "Building Qt" --gauge "Starting..." 20 80 $percent >&4
 
   fi
 
@@ -602,7 +655,7 @@ function build_Qt_ctrl_c_triggered()
 
 function build_Qt()
 {
-  if [ "x$BUILD_QT" == "xYes" ]; then
+  if [ "x$BUILD_QT" == "xon" ]; then
     #set up environment, just in case we forget about it!
     if [ "x$WM_PROJECT_DIR" == "x" ]; then
       setOpenFOAMEnv
@@ -614,7 +667,7 @@ function build_Qt()
     #purge existing Qt
     if [ -e "$QT_PLATFORM_PATH" ]; then
       rm -rf $QT_PLATFORM_PATH
-    fi 
+    fi
 
     BUILD_QT_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/build_Qt.log"
 
@@ -623,7 +676,7 @@ function build_Qt()
 
     echo "------------------------------------------------------"
     echo "Build Qt:"
-    
+
     #launch makeQt asynchronously
     bash -c "time ./makeQt --confirm-license=yes" > "$BUILD_QT_LOG" 2>&1 &
     BUILD_QT_PID=$!
@@ -633,7 +686,7 @@ function build_Qt()
     #track build progress
     percent=0
     build_Qt_progress_dialog
-    
+
     #wait for kill code to change
     clear
     if ! ps -p $BUILD_QT_PID > /dev/null && [ "x$BUILD_QT_MUST_KILL" != "x" ]; then
@@ -642,7 +695,7 @@ function build_Qt()
 
     #clear traps
     trap - SIGINT SIGQUIT SIGTERM
-    
+
     echo "------------------------------------------------------"
     echo "Build Qt ${QT_VERSION}:"
     if [ -e "$QT_PLATFORM_PATH/bin/qmake" ]; then
@@ -682,7 +735,7 @@ function build_ParaView_progress_dialog()
         percent=$BUILD_PARAVIEW_PROGRESS
         BUILD_PARAVIEW_UPDATE_TIME=`date`
       fi
-      
+
       #get current build stage
       BUILD_PARAVIEW_ISNOWATDOC=`cat "$PARAVIEW_BUILD_LOG" | grep "Creating html documentation" | wc -l`
       BUILD_PARAVIEW_ISNOWFINALIZING=`cat "$PARAVIEW_BUILD_LOG" | grep "Replacing path hard links for" | wc -l`
@@ -698,13 +751,13 @@ function build_ParaView_progress_dialog()
       echo "Either way, please wait, this will take a while..."
       echo -e "\nParaView started to build at:\n\t$BUILD_PARAVIEW_START_TIME\n"
       echo -e "Last progress update made at:\n\t$BUILD_PARAVIEW_UPDATE_TIME\n"
-      
+
       if [ "x$BUILD_PARAVIEW_ISNOWATDOC" != "x0" -a "x$BUILD_PARAVIEW_ISNOWFINALIZING" == "x0" ]; then
         echo "Building HTML documentation for ParaView..."
       elif [ "x$BUILD_PARAVIEW_ISNOWFINALIZING" != "x0" ]; then
         echo "Finalizing... almost complete..."
       fi
-      
+
       echo "XXX"
 
       #this provides a better monitorization of the process itself... i.e., if it has already stopped!
@@ -716,7 +769,7 @@ function build_ParaView_progress_dialog()
       fi
     done
     ) | dialog --backtitle "$GUI_BACKTITLE" \
-        --title "Building ParaView" --gauge "Starting..." 20 80 $percent
+        --title "Building ParaView" --gauge "Starting..." 20 80 $percent >&4
 
   fi
 
@@ -733,7 +786,7 @@ function build_ParaView_ctrl_c_triggered()
 
 function hookup_Qt_Libs_with_ParaView()
 {
-  if [ "x$BUILD_QT" == "xYes" ]; then
+  if [ "x$BUILD_QT" == "xon" ]; then
     for a in ${QT_PLATFORM_PATH}/lib/*.4; do
       b=`echo $a | sed -e 's/.*\/\(.*\)$/\1/'`
       ln -s $a ${ParaView_DIR}/bin/$b
@@ -743,9 +796,9 @@ function hookup_Qt_Libs_with_ParaView()
 
 function build_ParaView()
 {
-  if [ "x$BUILD_PARAVIEW" == "xYes" ]; then
-    
-    if [ "x$BUILD_QT" == "xYes" -a "x$BUILDING_QT_FAILED" == "xYes" ]; then
+  if [ "x$BUILD_PARAVIEW" == "xon" ]; then
+
+    if [ "x$BUILD_QT" == "xon" -a "x$BUILDING_QT_FAILED" == "xYes" ]; then
 
       echo "------------------------------------------------------"
       echo "The requested Qt is unavailable, thus rendering impossible to build ParaView with it."
@@ -763,26 +816,26 @@ function build_ParaView()
       #purge existing ParaView
       if [ -e "$ParaView_DIR" ]; then
         rm -rf $ParaView_DIR
-      fi 
+      fi
 
       PARAVIEW_BUILD_OPTIONS=""
-      if [ "x$BUILD_QT" == "xYes" ]; then
+      if [ "x$BUILD_QT" == "xon" ]; then
         PARAVIEW_BUILD_OPTIONS="$PARAVIEW_BUILD_OPTIONS -qmake \"$QT_PLATFORM_PATH/bin/qmake\""
       fi
 
-      if [ "x$BUILD_PARAVIEW_WITH_GUI" == "xNo" ]; then
+      if [ "x$BUILD_PARAVIEW_WITH_GUI" == "xoff" ]; then
         PARAVIEW_BUILD_OPTIONS="$PARAVIEW_BUILD_OPTIONS -noqt"
       fi
 
-      if [ "x$BUILD_PARAVIEW_WITH_MPI" == "xYes" ]; then
+      if [ "x$BUILD_PARAVIEW_WITH_MPI" == "xon" ]; then
         PARAVIEW_BUILD_OPTIONS="$PARAVIEW_BUILD_OPTIONS -mpi"
       fi
 
-      if [ "x$BUILD_PARAVIEW_WITH_PYTHON" == "xYes" ]; then
+      if [ "x$BUILD_PARAVIEW_WITH_PYTHON" == "xon" ]; then
         PARAVIEW_BUILD_OPTIONS="$PARAVIEW_BUILD_OPTIONS -python"
       fi
 
-      if [ "x$BUILD_PARAVIEW_WITH_OSMESA" == "xYes" ]; then
+      if [ "x$BUILD_PARAVIEW_WITH_OSMESA" == "xon" ]; then
         PARAVIEW_BUILD_OPTIONS="$PARAVIEW_BUILD_OPTIONS -mesa"
       fi
 
@@ -799,7 +852,7 @@ function build_ParaView()
       BUILD_PARAVIEW_PID=$!
       BUILD_PARAVIEW_START_TIME=`date`
       BUILD_PARAVIEW_UPDATE_TIME=$BUILD_PARAVIEW_START_TIME
-      
+
       #track build progress
       percent=0
       build_ParaView_progress_dialog
@@ -819,12 +872,12 @@ function build_ParaView()
 
         #this will make links in ParaView's bin folder to the custom build of Qt's libraries
         hookup_Qt_Libs_with_ParaView
-        
+
         echo -e "ParaView started to build at:\n\t$BUILD_PARAVIEW_START_TIME\n"
         echo -e "Building ParaView finished successfully at:\n\t`date`"
         echo "ParaView is ready to use."
 
-      elif [ "x$BUILD_PARAVIEW_WITH_GUI" == "xNo" -a "x$BUILD_PARAVIEW_WITH_MPI" == "xYes" -a \
+      elif [ "x$BUILD_PARAVIEW_WITH_GUI" == "xoff" -a "x$BUILD_PARAVIEW_WITH_MPI" == "xon" -a \
              -e "$ParaView_DIR/bin/pvserver" -a -e "$ParaView_DIR/bin/pvrenderserver" -a \
              -e "$ParaView_DIR/bin/pvdataserver" ]; then
 
@@ -853,31 +906,31 @@ function build_ParaView()
 
 function build_PV3FoamReader()
 {
-  if [ "x$BUILD_PARAVIEW" == "xYes" ]; then
-    
+  if [ "x$BUILD_PARAVIEW" == "xon" ]; then
+
     #set up environment, just in case we forget about it!
     if [ "x$WM_PROJECT_DIR" == "x" ]; then
       setOpenFOAMEnv
     fi
 
-    if [ "x$BUILD_QT" == "xYes" -a "x$BUILDING_QT_FAILED" == "xYes" ]; then
+    if [ "x$BUILD_QT" == "xon" -a "x$BUILDING_QT_FAILED" == "xYes" ]; then
 
       echo "------------------------------------------------------"
       echo "No Qt, no ParaView, thus no PV3FoamReader."
       echo "------------------------------------------------------"
 
     elif [ ! -e "$ParaView_DIR/bin/paraview" ]; then
-      
+
       echo "------------------------------------------------------"
       echo "ParaView isn't available where it is expected:"
       echo "  $ParaView_DIR/bin/paraview"
       echo "Therefore it isn't possible to proceed with building the plugin PV3FoamReader."
       echo "------------------------------------------------------"
-      
+
     else
 
       cd "$FOAM_UTILITIES/postProcessing/graphics/PV3FoamReader"
-      
+
       PV3FOAMREADER_BUILD_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/build_PV3FoamReader.log"
 
       echo "------------------------------------------------------"
@@ -913,8 +966,8 @@ function build_PV3FoamReader()
 
 function build_ccm26ToFoam()
 {
-  
-  if [ "x$BUILD_CCM26TOFOAM" == "xYes" ]; then
+
+  if [ "x$BUILD_CCM26TOFOAM" == "xon" ]; then
     #set up environment, just in case we forget about it!
     if [ "x$WM_PROJECT_DIR" == "x" ]; then
       setOpenFOAMEnv

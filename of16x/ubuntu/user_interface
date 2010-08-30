@@ -6,7 +6,7 @@
 
 #global variables used by this script:
 #   INST_SYSTEM - System variant for installation - defined in the master script
-#   SYSTEM_VERSION - must be defined before sourcing this script. It holds the version for the system 
+#   SYSTEM_VERSION - must be defined before sourcing this script. It holds the version for the system
 #                    script of the same name as this one.
 #   GUI_BACKTITLE - The back title for the dialogs
 #   INSTALLMODE   - option for the installation mode - defined in common/user_interface
@@ -26,19 +26,19 @@ echo "Sourcing User Interface functions for OpenFOAM 1.6.x and Ubuntu..."
 function check_options_sanity_for_system()
 {
   if [ "x$INSTALLMODE" != "xcustom" ] && \
-     ! [ "$INSTALLMODE" == "fresh" -a "$USE_REPO_PV" == "Yes" -o "$USE_KITWARE_PV" == "Yes" ]; then
+     ! [ "x$INSTALLMODE" == "xfresh" -a "x$USE_REPO_PV" == "xon" -o "x$USE_KITWARE_PV" == "xon" ]; then
 
-    if [ "$SYSTEM_VERSION" == "10.04" -a "x$BUILD_PARAVIEW" != "xYes" ]; then
-        BUILD_QT=Yes
-        BUILD_PARAVIEW=Yes
+    if [ "$SYSTEM_VERSION" == "10.04" -a "x$BUILD_PARAVIEW" != "xon" ]; then
+        BUILD_QT=on
+        BUILD_PARAVIEW=on
         dialog --sleep 6 --backtitle "$GUI_BACKTITLE"   \
         --title "Non-optional setting detected!" \
         --infobox "You are running Ubuntu $SYSTEM_VERSION.\nFor ParaView to work properly this script must do a custom build of Qt, ParaView and PV3FoamReader" 5 70
     fi
     if [ "$SYSTEM_VERSION" == "8.04" ]; then
-      if [ "x$BUILD_PARAVIEW" != "Yes" -o "x$BUILD_QT" != "xYes" ]; then
-        BUILD_QT=Yes
-        BUILD_PARAVIEW=Yes
+      if [ "x$BUILD_PARAVIEW" != "xon" -o "x$BUILD_QT" != "xon" ]; then
+        BUILD_QT=on
+        BUILD_PARAVIEW=on
         dialog --sleep 6 --backtitle "$GUI_BACKTITLE"   \
         --title "Non-optional setting detected!" \
         --infobox "You are running Ubuntu $SYSTEM_VERSION. \nFor ParaView to work properly this script must do a custom build of Qt and also build ParaView." 5 70
