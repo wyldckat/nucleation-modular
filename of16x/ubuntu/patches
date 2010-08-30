@@ -10,3 +10,11 @@
 echo "Sourcing patching functions for OpenFOAM ${OF_LONG_VERSION}, specific to Ubuntu..."
 
 #-- FUNCTIONS -----------------------------------------------------
+
+#Apply patches associated with the system
+#NOTE: This function must always exist!
+function apply_patches_system()
+{
+  #Nothing to do for now...
+  :
+}

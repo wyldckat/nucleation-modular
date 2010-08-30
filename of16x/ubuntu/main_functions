@@ -7,11 +7,36 @@
 #   INST_SYSTEM - System variant for installation - defined in the master script
 
 #Code -----------------------------------------
-echo "Sourcing Main functions functions for OpenFOAM 1.6.x and Ubuntu..."
+echo "Sourcing Main functions functions for OpenFOAM $OF_LONG_VERSION and Ubuntu..."
 
 #Define files (including paths) to the files this script provides for of$OF_SHORT_VERSION/system
+#NOTE: This function must always exist!
 function define_script_s_files_ofv_system()
 {
   #Nothing to do for now...
   :
+}
+
+#also define files pertinent to each system
+#NOTE: This function must always exist!
+function define_packages_to_download_system()
+{
+  if [ "$arch" == "x64" ]; then
+    #CMake is needed for old and new Ubuntu versions...
+    if isleftlarger_or_equal 8.04 $SYSTEM_VERSION || isleftlarger_or_equal $SYSTEM_VERSION 10.04; then
+      THIRDPARTY_BIN_CMAKE="ThirdParty-1.6.linuxGcc.gtgz"
+    fi
+  fi
+}
+
+#It will request any fixes deemed necessary to gcc after it is built
+#NOTE: This function must always exist!
+function fix_gcc_if_necessary()
+{
+  #TODO: this won't be necessary if we build cmake too, since then there won't be
+  #any more dependencies to the system's libraries!
+  if [ "$arch" == "x64" -a "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
+    #this function is defined in the of16x/ubuntu/fixes script
+    link_gcc433_libraries_to_system
+  fi
 }

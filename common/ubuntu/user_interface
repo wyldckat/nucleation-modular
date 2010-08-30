@@ -13,6 +13,7 @@
 echo "Sourcing User Interface functions for Ubuntu..."
 
 
+#NOTE: This function must always exist!
 function define_system_custom_optionals()
 {
   if [ "x$CUSTOMOPTS_OFOPTIONALS" == "xon" ]; then

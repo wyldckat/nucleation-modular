@@ -8,7 +8,7 @@
 
 #global variables used by this script:
 #   SHOW_SUDO_COMMANDS_ONLY - option for showing or direct usage of install commands - defined in ask_for_sudo_policy()
-#   SYSTEM_VERSION - must be defined before sourcing this script. It holds the version for the system 
+#   SYSTEM_VERSION - must be defined before sourcing this script. It holds the version for the system
 #                    script of the same name as this one.
 #   arch - the architecture for the build - defined in the master script
 #   PACKAGES_TO_INSTALL - list (not an array) of packages that need to be installed - defined in install_dialog_package()
@@ -31,8 +31,9 @@ echo "Sourcing Main functions for Ubuntu ..."
 #FUNCTIONS ------------------------------------------------------------------------------
 
 #setup sudo policy for this script
-#REASON: not always does the user have superuser powers, or maybe the user doesn't fully trust us. 
+#REASON: not always does the user have superuser powers, or maybe the user doesn't fully trust us.
 #Either way, using sudo whithin the script could be a security hazard waiting to happen :(
+#NOTE: This function must always exist!
 function ask_for_sudo_policy()
 {
   echo '-----------------------------------------------------------'
@@ -56,6 +57,7 @@ function ask_for_sudo_policy()
 }
 
 #install dialog or abort if not possible
+#NOTE: This function must always exist!
 function install_dialog_package()
 {
   if ! ispackage_installed dialog; then
@@ -89,6 +91,7 @@ function install_dialog_package()
 }
 
 #install packages in Ubuntu
+#NOTE: This function must always exist!
 function install_packages()
 {
   #define which packages need to be installed
@@ -98,7 +101,7 @@ function install_packages()
   if isleftlarger_or_equal 8.10 $SYSTEM_VERSION; then
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL curl"
   fi
-  
+
   #for Ubuntu 9.10 and 10.04, a few more packages are needed
   if isleftlarger_or_equal $SYSTEM_VERSION 9.10; then
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libpng12-dev libxt-dev libxi-dev libxrender-dev libxrandr-dev libxcursor-dev libxinerama-dev libfreetype6-dev libfontconfig1-dev libglib2.0-dev"
@@ -127,7 +130,7 @@ function install_packages()
   if [ "x$BUILD_QT" != "xon" ]; then
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libqt4-dev qt4-dev-tools"
   fi
-  
+
   #install OSMesa when chosen for ParaView
   if [ "x$BUILD_PARAVIEW_WITH_OSMESA" == "xon" ]; then
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libosmesa6 libosmesa6-dev"
@@ -140,7 +143,7 @@ function install_packages()
 
   #now remove the ones that are already installed
   prune_packages_to_install
-  
+
   #only show commands for installation if any packages are missing!
   if [ "x$PACKAGES_TO_INSTALL" != "x" ]; then
 
@@ -153,12 +156,12 @@ function install_packages()
         echo 'The command "sudo apt-get upgrade -y" is now going to be executed.'
         sudo apt-get upgrade -y
       fi
-      
+
       echo 'The command:'
       echo "    sudo apt-get install -y -q=1 $PACKAGES_TO_INSTALL"
       echo 'is now going to be executed.'
       sudo apt-get install -y -q=1 $PACKAGES_TO_INSTALL
-      
+
     else
 
       echo 'Please run the following commands in another terminal or ask your system''s administrator to run them:'
@@ -176,7 +179,7 @@ function install_packages()
     fi
 
   fi
-  
+
   #now remove the ones that are already installed again, to confirm that all have been installed!
   prune_packages_to_install
   if [ "x$PACKAGES_TO_INSTALL" != "x" ]; then
@@ -191,10 +194,11 @@ function install_packages()
         exit 1
         ;;
     esac
-  fi  
+  fi
 }
 
 #Define files (including paths) to the files this script provides for common/$system
+#NOTE: This function must always exist!
 function define_script_s_files_system()
 {
   #Nothing to do for now...
@@ -202,7 +206,9 @@ function define_script_s_files_system()
 }
 
 #define default options that are system dependent
+#NOTE: This function must always exist!
 function define_default_user_options_system()
 {
   DOUPGRADE=off  #on | off
 }
+

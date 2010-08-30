@@ -161,6 +161,7 @@ echo "Sourcing scripts related to the chosen OpenFOAM version..."
 . ${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/main_functions
 . ${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/user_interface
 . ${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/patches
+. ${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/fixes
 echo "Sourcing complete."
 echo "-------------------------------------------------------------"
 

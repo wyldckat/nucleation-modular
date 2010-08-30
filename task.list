@@ -53,11 +53,10 @@ Done:
   - change options given via dialog from Yes/No to on/off, since this way it will be simpler
     to do some pre-setting of saved variables and such
 
-Tasks to do:
-
   - modify the "*versionning* mechanism" that is tightly coupled to Ubuntu
-  versions into an abstract mechanism, i.e., define variables by generations,
-  not Ubuntu versions; <- done, I think, still have to go through the functions to confirm
+  versions into an abstract mechanism. Now things related to specific systems are left on the side.
+
+Tasks to do:
 
   - Now with "Ubuntu" and "Generic" options, put code that is "Ubuntu
   only" in one module script and copy-paste-change those same functions into
@@ -69,6 +68,10 @@ Tasks to do:
   to. Either way, it will only provide hints on what packages should be
   installed in the Linux box, and will try to infer what might be missing...
 
+  - provide a summary of items that failed to build at the end of the
+   installation, along with the option for making a nice little package
+   with the related failed items logs, for the user to post online;
+
 
 Unsorted tasks:
    2. add "use System OpenMPI" option;
@@ -76,10 +79,6 @@ Unsorted tasks:
       1. to include the custom options in a less *wreck-less* way;
       2. strictly separate options that are client side from server side
       installations (like OSMesa in ParaView);
-   4. provide a summary of items that failed to build at the end of the
-   installation;
-   6. make a nice little package with the related failed items logs, for the
-   user to post online;
    7. add option to install Discretizer into the script; <- postponed
    8. finally, move/copy the script (and dependents) into the new repo (in a
    dedicated folder please!) and change the path to the repo in the new copy

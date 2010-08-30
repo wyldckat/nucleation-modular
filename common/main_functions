@@ -72,6 +72,58 @@ function define_default_user_options()
   define_default_user_options_system
 }
 
+#git clone OpenFOAM
+function OpenFOAM_git_clone()
+{
+  cd_openfoam #this is a precautionary measure
+
+  echo "------------------------------------------------------"
+  echo "Retrieving OpenFOAM $OF_LONG_VERSION from git..."
+  echo "------------------------------------------------------"
+  git clone ${OPENFOAM_GIT_REPO}
+  OpenFOAM_git_error=$?
+
+  continue_after_failed_openfoam_git
+}
+
+#apply patches and fixes
+function apply_patches_fixes()
+{
+  #apply patches (depends on the version of OpenFOAM)
+  apply_patches
+
+  #apply_fixes (also depends on the version of OpenFOAM)
+  apply_fixes
+}
+
+#Activate OpenFOAM environment
+function setOpenFOAMEnv()
+{
+  echo "------------------------------------------------------"
+  echo "Activate OpenFOAM environment"
+  echo "------------------------------------------------------"
+  cd_openfoam
+  cd OpenFOAM-$OF_LONG_VERSION/
+  . $PATHOF/OpenFOAM-$OF_LONG_VERSION/etc/bashrc
+}
+
+#Add OpenFOAM's bashrc entry in $PATHOF/.bashrc
+function add_openfoam_to_bashrc()
+{
+  echo "------------------------------------------------------"
+  echo "Add OpenFOAM's bashrc entry in $PATHOF/.bashrc"
+  echo "------------------------------------------------------"
+
+  #nuke ~/.bashrc entries that have references to the same script
+  grep -v "$PATHOF/OpenFOAM-$OF_LONG_VERSION/etc/bashrc" ~/.bashrc > ~/.bashrc.new
+  cp ~/.bashrc ~/.bashrc.old
+  mv ~/.bashrc.new ~/.bashrc
+  if [ "x$USE_ALIAS_FOR_BASHRC" == "xon" ]; then
+    echo -e "alias startFoam$OF_SHORT_VERSION=\". $PATHOF/OpenFOAM-$OF_LONG_VERSION/etc/bashrc\"" >> ~/.bashrc
+  else
+    echo ". $PATHOF/OpenFOAM-$OF_LONG_VERSION/etc/bashrc" >> ~/.bashrc
+  fi
+}
 
 #provide the user with a progress bar and timings for building gcc
 function build_gcc_progress_dialog()
@@ -97,7 +149,7 @@ function build_gcc_progress_dialog()
       fi
       echo $percent
       echo "XXX"
-      echo "Build gcc-4.3.3:"
+      echo "Build gcc-$GCC_VERSION:"
       echo "The build process is going to be logged in the file:"
       echo "  $BUILD_GCC_LOG"
       echo "If you want to, you can follow the progress of this build"
@@ -143,7 +195,9 @@ function build_openfoam_gcc()
 
     cd $WM_THIRD_PARTY_DIR
 
-    BUILD_GCC_ROOT="$WM_THIRD_PARTY_DIR/gcc-4.3.3/platforms/$WM_ARCH$WM_COMPILER_ARCH"
+    #gcc root changes with OpenFOAM versions...
+    set_BUILD_GCC_ROOT
+
     #purge existing gcc
     if [ -e "$BUILD_GCC_ROOT" ]; then
       rm -rf $BUILD_GCC_ROOT
@@ -181,17 +235,14 @@ function build_openfoam_gcc()
     trap - SIGINT SIGQUIT SIGTERM
 
     echo "------------------------------------------------------"
-    echo "Build gcc-4.3.3:"
+    echo "Build gcc-$GCC_VERSION:"
     if [ -e "$BUILD_GCC_ROOT/bin/gcc" ]; then
       echo -e "gcc started to build at:\n\t$BUILD_GCC_START_TIME\n"
       echo -e "Building gcc finished successfully at:\n\t`date`"
       echo "gcc is ready to be used."
 
-      #TODO: this won't be necessary if we build cmake too, since then there won't be
-      #any more dependencies to the system's libraries!
-      if [ "$arch" == "x64" -a "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
-        link_gcc433_libraries_to_system
-      fi
+      #sometimes it's necessary to do some additional fixing to the custom built gcc
+      fix_gcc_if_necessary
     else
       echo "Build process didn't finished with success. Please check the log file for more information:"
       echo -e "\t$BUILD_GCC_LOG"
@@ -263,7 +314,7 @@ function build_awopenfoam_ctrl_c_triggered()
   build_awopenfoam_progress_dialog
 }
 
-#do an Allwmake on OpenFOAM 1.6.x
+#do an Allwmake on OpenFOAM
 function allwmake_openfoam()
 {
   #set up environment, just in case we forget about it!
@@ -377,10 +428,10 @@ function build_awopenfoam_docs_ctrl_c_triggered()
   build_awopenfoam_docs_progress_dialog
 }
 
-#do an Allwmake on OpenFOAM 1.6.x
+#do an "wmake all docs" on OpenFOAM
 function allwmake_openfoam_docs()
 {
-  if [ "x$BUILD_DOCUMENTATION" != "x" ]; then
+  if [ "x$BUILD_DOCUMENTATION" == "xon" ]; then
 
     #set up environment, just in case we forget about it!
     if [ "x$WM_PROJECT_DIR" == "x" ]; then
@@ -398,7 +449,7 @@ function allwmake_openfoam_docs()
     echo "Calculating building estimates, please wait..."
     #first calculate estimate
     BUILD_AWOPENFOAMDOC_FILECOUNT=`find * | grep -v "/lnInclude/" | grep -v "/t/" | grep -e "^src/" -e "^applications/utilities" -e "^applications/solvers" | grep -e ".H$" -e ".C$" | wc -l`
-    BUILD_AWOPENFOAMDOC_ESTIMCOUNT=`expr $BUILD_AWOPENFOAMDOC_FILECOUNT \* 385 / 100`
+    BUILD_AWOPENFOAMDOC_ESTIMCOUNT=`expr $BUILD_AWOPENFOAMDOC_FILECOUNT \* 385 / 100` #it's an empirical estimate based on some runs
     echo "Now it's going to build the documentation..."
 
     #launch wmake all asynchronously
@@ -483,14 +534,16 @@ function check_installation()
 
   cd $WM_PROJECT_DIR
 
+  FOAM_INSTALLATION_TEST_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/foamIT.log"
+
   echo "------------------------------------------------------"
   echo "Checking installation - you should see NO criticals..."
   echo "------------------------------------------------------"
-  foamInstallationTest | tee "$BASE_LOG_FOLDER/$OF_SHORT_VERSION/foamIT.log"
-  echo -e "\n\nThis report has been saved in file $BASE_LOG_FOLDER/$OF_SHORT_VERSION/foamIT.log"
+  foamInstallationTest | tee "$FOAM_INSTALLATION_TEST_LOG"
+  echo -e "\n\nThis report has been saved in file $FOAM_INSTALLATION_TEST_LOG"
 
   #if issues found then generate "bug report" and request that the user reports it!
-  IFERRORSDETECTED=`grep "Critical systems ok" "$BASE_LOG_FOLDER/$OF_SHORT_VERSION/foamIT.log"`
+  IFERRORSDETECTED=`grep "Critical systems ok" "$FOAM_INSTALLATION_TEST_LOG"`
   if [ "x$IFERRORSDETECTED" == "x" ]; then
     FOAMINSTALLFAILED="Yes"
     echo -e "\nSadly there have been some critical issues detected by OpenFOAM's foamInstallationTest script."
@@ -501,7 +554,7 @@ function check_installation()
     read casestat;
     case $casestat in
       yes | y | Y | Yes | YES)
-        FILES_TO_REPORT="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/foamIT.log $BASE_LOG_FOLDER/$OF_SHORT_VERSION/make.log"
+        FILES_TO_REPORT="$FOAM_INSTALLATION_TEST_LOG $BUILD_AWOPENFOAM_LOG"
         if [ "x$LOG_OUTPUTS" == "xYes" ]; then
           FILES_TO_REPORT="$FILES_TO_REPORT $LOG_OUTPUTS_FILE_LOCATION"
         fi
@@ -531,9 +584,9 @@ function fix_tutorials()
     cd $WM_PROJECT_DIR
 
     echo "------------------------------------------------------"
-    echo "Fixing call for bash in tutorials (default is dash in Ubuntu)"
+    echo "Fixing call for bash in tutorials (sometimes the default is dash, like in Ubuntu)"
     #NOTE: searching for patterns requires quotes
-    find $FOAM_TUTORIALS/ -name "All*" | \
+    find $FOAM_TUTORIALS/ -name "All*" -name "makeMesh" | \
     while read file
     do
         mv "$file" "$file.old"
@@ -556,7 +609,7 @@ function final_messages_for_clean_install()
     if [ "x$USE_ALIAS_FOR_BASHRC" == "xon" ]; then
       echo "Installation complete - You have chosen to use bash alias"
       echo "To start using OpenFOAM, you'll have to start a new terminal first;"
-      echo -e "then, type:\n\tstartFoam\nto activate the OpenFOAM environment."
+      echo -e "then, type:\n\tstartFoam$OF_SHORT_VERSION\nto activate the OpenFOAM environment."
       echo "------------------------------------------------------"
     else
       echo "Installation complete"
@@ -568,7 +621,7 @@ function final_messages_for_clean_install()
 
     echo "Installation failed. Please don't forget to check the provided forum link for solutions on the provided link, and/or report the error."
     if [ "x$USE_ALIAS_FOR_BASHRC" == "xon" ]; then
-      echo "Nonetheless, next time you launch a new terminal/console, you can set up the OpenFOAM environment by typing: startFoam"
+      echo "Nonetheless, next time you launch a new terminal/console, you can set up the OpenFOAM environment by typing: startFoam$OF_SHORT_VERSION"
     else
       echo "Nonetheless, next time you launch a new terminal/console, the OpenFOAM environment will be ready to be used."
     fi
@@ -663,7 +716,9 @@ function build_Qt()
 
     cd $WM_THIRD_PARTY_DIR
 
-    QT_PLATFORM_PATH="${WM_THIRD_PARTY_DIR}/qt-x11-opensource-src-${QT_VERSION}/platforms/${WM_OPTIONS}"
+    #set the QT_PLATFORM_PATH variable, since it depends on the OpenFOAM version
+    set_QT_PLATFORM_PATH
+
     #purge existing Qt
     if [ -e "$QT_PLATFORM_PATH" ]; then
       rm -rf $QT_PLATFORM_PATH

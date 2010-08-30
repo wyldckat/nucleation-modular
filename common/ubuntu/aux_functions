@@ -15,6 +15,7 @@ echo "Sourcing Ubuntu Related Auxiliary functions..."
 
 #is package installed
 #usage: ispackage_installed package_name
+#NOTE: This function must always exist!
 function ispackage_installed()
 {
   set +e

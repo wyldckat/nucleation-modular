@@ -33,6 +33,7 @@ fi
 
 
 #Check the sanity of the options
+#NOTE: This function must always exist!
 function check_options_sanity()
 {
   #Check the sanity of the options, depending on the target system
