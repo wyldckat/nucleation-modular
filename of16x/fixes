@@ -1,0 +1,51 @@
+#!/bin/bash
+
+#-- FIXING FUNCTIONS ------------------------------------------------------
+#list of functions herein:
+
+#global variables used by this script:
+#   INST_SYSTEM - System variant for installation - defined in the master script
+#   SCRIPT_WORKFOLDER - the folder where the main script's dependency files are located
+#   OF_SHORT_VERSION - the short version of OpenFOAM to be installed. Example: 16x
+#   OF_LONG_VERSION - the long version of OpenFOAM to be installed. Example: 1.6.x
+
+#Code -----------------------------------------
+echo "Sourcing fixing functions for OpenFOAM ${OF_LONG_VERSION}..."
+
+#source system related script
+if [ "x$INST_SYSTEM" != "x" -a "x$OF_SHORT_VERSION" != "x" ]; then
+  . ${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/${INST_SYSTEM}/fixes
+else
+  echo "The variable INST_SYSTEM and/or OF_SHORT_VERSION is/are empty and both are crucial to exist! Aborting execution."
+  exit 1
+fi
+
+#-- FUNCTIONS -----------------------------------------------------
+
+#FIXES ------
+#NOTE: This function must always exist!
+function apply_fixes()
+{
+  cd_openfoam #this is a precautionary measure
+
+  #fix links to proper libraries for gcc, as long as the OpenFOAM's precompiled version is used
+  if isleftlarger_or_equal $SYSTEM_VERSION 9.10 && [ "x$USE_OF_GCC" == "xon" ]; then
+    link_gcc_libraries_to_system
+  fi
+
+  #fix ParaView's help file reference, for when ParaView isn't built
+  if [ "x$BUILD_PARAVIEW" == "xoff" ]; then
+    cd_openfoam
+    if [ "$arch" == "x86" ]; then
+      cd ThirdParty-1.6/paraview-3.6.1/platforms/linuxGcc/bin
+    elif [ "$arch" == "x64" ]; then
+      cd ThirdParty-1.6/paraview-3.6.1/platforms/linux64Gcc/bin
+    fi
+    mv pqClientDocFinder.txt pqClientDocFinder_orig.txt
+    cat pqClientDocFinder_orig.txt | sed -e 's=/home/dm2/henry/OpenFOAM='${PATHOF}'=' > ./pqClientDocFinder.txt
+  fi
+
+  #apply fixes associated with the system
+  apply_fixes_system
+}
+
