@@ -32,7 +32,7 @@ function build_gcc_progress_dialog()
   else
 
     ( #while true is used as a containment cycle...
-    while true;
+    while : ;
     do
       if [ -e "$BUILD_GCC_LOG" ]; then
         BUILD_GCC_MAKECOUNT=`grep 'make\[.\]' "$BUILD_GCC_LOG" | wc -l`
@@ -100,7 +100,7 @@ function build_openfoam_gcc()
       BUILD_GCC_OPTION="--disable-multilib"
     fi
     
-    BUILD_GCC_LOG="$WM_THIRD_PARTY_DIR/build_gcc.log"
+    BUILD_GCC_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/build_gcc.log"
     
     #set up traps...
     trap build_gcc_ctrl_c_triggered SIGINT SIGQUIT SIGTERM
@@ -163,7 +163,7 @@ function build_awopenfoam_progress_dialog()
   else
 
     ( #while true is used as a containment cycle...
-    while true;
+    while : ;
     do
       if [ -e "$BUILD_AWOPENFOAM_LOG" ]; then
         BUILD_AWOPENFOAM_MAKECOUNT=`grep 'WMAKE timing start' "$BUILD_AWOPENFOAM_LOG" | wc -l`
@@ -219,7 +219,7 @@ function allwmake_openfoam()
   fi
 
   cd $WM_PROJECT_DIR
-  BUILD_AWOPENFOAM_LOG="$WM_PROJECT_DIR/make.log"
+  BUILD_AWOPENFOAM_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/make.log"
 
   #set up traps...
   trap build_awopenfoam_ctrl_c_triggered SIGINT SIGQUIT SIGTERM
@@ -239,7 +239,7 @@ function allwmake_openfoam()
 
   #launch wmake all asynchronously
   #bash -c is the only way I got for getting time results straight to display and also logged
-  bash -c "time wmake all > make.log 2>&1" >> make.log 2>&1 &
+  bash -c "time wmake all > ${BUILD_AWOPENFOAM_LOG} 2>&1" >> ${BUILD_AWOPENFOAM_LOG} 2>&1 &
   BUILD_AWOPENFOAM_PID=$!
   BUILD_AWOPENFOAM_START_TIME=`date`
   BUILD_AWOPENFOAM_UPDATE_TIME=$BUILD_AWOPENFOAM_START_TIME
@@ -276,7 +276,7 @@ function build_awopenfoam_docs_progress_dialog()
   else
 
     ( #while true is used as a containment cycle...
-    while true;
+    while : ;
     do
       if [ -e "$BUILD_AWOPENFOAMDOC_LOG" ]; then
         BUILD_AWOPENFOAM_NOWCOUNT=`cat "$BUILD_AWOPENFOAMDOC_LOG" | grep -e "^Parsing file" -e "^Generating code for file" -e "^Generating docs for" -e "^Generating dependency graph for directory" | wc -l`
@@ -335,7 +335,7 @@ function allwmake_openfoam_docs()
     fi
 
     cd $WM_PROJECT_DIR
-    BUILD_AWOPENFOAMDOC_LOG="$WM_PROJECT_DIR/docmake.log"
+    BUILD_AWOPENFOAMDOC_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/docmake.log"
 
     #set up traps...
     trap build_awopenfoam_docs_ctrl_c_triggered SIGINT SIGQUIT SIGTERM
@@ -433,11 +433,11 @@ function check_installation()
   echo "------------------------------------------------------"
   echo "Checking installation - you should see NO criticals..."
   echo "------------------------------------------------------"
-  foamInstallationTest | tee foamIT.log
-  echo -e "\n\nThis report has been saved in file $WM_PROJECT_DIR/foamIT.log"
+  foamInstallationTest | tee "$BASE_LOG_FOLDER/$OF_SHORT_VERSION/foamIT.log"
+  echo -e "\n\nThis report has been saved in file $BASE_LOG_FOLDER/$OF_SHORT_VERSION/foamIT.log"
 
   #if issues found then generate "bug report" and request that the user reports it!
-  IFERRORSDETECTED=`cat foamIT.log | grep "Critical systems ok"`
+  IFERRORSDETECTED=`grep "Critical systems ok" "$BASE_LOG_FOLDER/$OF_SHORT_VERSION/foamIT.log"`
   if [ "x$IFERRORSDETECTED" == "x" ]; then
     FOAMINSTALLFAILED="Yes"
     echo -e "\nSadly there have been some critical issues detected by OpenFOAM's foamInstallationTest script."
@@ -448,7 +448,7 @@ function check_installation()
     read casestat;
     case $casestat in
       yes | y | Y | Yes | YES)
-        FILES_TO_REPORT="foamIT.log make.log"
+        FILES_TO_REPORT="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/foamIT.log $BASE_LOG_FOLDER/$OF_SHORT_VERSION/make.log"
         if [ "$LOG_OUTPUTS" == "Yes" ]; then
           FILES_TO_REPORT="$FILES_TO_REPORT $LOG_OUTPUTS_FILE_LOCATION"
         fi
@@ -553,7 +553,7 @@ function build_Qt_progress_dialog()
   else
     
     ( #while true is used as a containment cycle...
-    while true;
+    while : ;
     do
       if [ -e "$BUILD_QT_LOG" ]; then
         BUILD_QT_MAKECOUNT=`grep 'make\[.\]' "$BUILD_QT_LOG" | wc -l`
@@ -616,7 +616,7 @@ function build_Qt()
       rm -rf $QT_PLATFORM_PATH
     fi 
 
-    BUILD_QT_LOG="$WM_THIRD_PARTY_DIR/build_Qt.log"
+    BUILD_QT_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/build_Qt.log"
 
     #set up traps...
     trap build_Qt_ctrl_c_triggered SIGINT SIGQUIT SIGTERM
@@ -672,7 +672,7 @@ function build_ParaView_progress_dialog()
 
   else
     ( #while true is used as a containment cycle...
-    while true;
+    while : ;
     do
       #get progress value
       if [ -e "$PARAVIEW_BUILD_LOG" ]; then
@@ -786,7 +786,7 @@ function build_ParaView()
         PARAVIEW_BUILD_OPTIONS="$PARAVIEW_BUILD_OPTIONS -mesa"
       fi
 
-      PARAVIEW_BUILD_LOG="$WM_THIRD_PARTY_DIR/build_ParaView.log"
+      PARAVIEW_BUILD_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/build_ParaView.log"
 
       #set up traps...
       trap build_ParaView_ctrl_c_triggered SIGINT SIGQUIT SIGTERM
@@ -878,7 +878,7 @@ function build_PV3FoamReader()
 
       cd "$FOAM_UTILITIES/postProcessing/graphics/PV3FoamReader"
       
-      PV3FOAMREADER_BUILD_LOG="$WM_PROJECT_DIR/build_PV3FoamReader.log"
+      PV3FOAMREADER_BUILD_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/build_PV3FoamReader.log"
 
       echo "------------------------------------------------------"
       echo "Build PV3FoamReader for ParaView:"
@@ -922,7 +922,7 @@ function build_ccm26ToFoam()
 
     cd "$FOAM_APP/utilities/mesh/conversion/Optional/"
 
-    BUILD_CCM26TOFOAM_LOG="$WM_PROJECT_DIR/build_ccm26.log"
+    BUILD_CCM26TOFOAM_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/build_ccm26.log"
 
     echo "------------------------------------------------------"
     echo "Build ccm26ToFoam:"

@@ -2,7 +2,6 @@
 
 #-- USER INTERFACE FUNCTIONS ------------------------------------------------------
 #list of functions herein:
-#     check_options_sanity_for_system()
 
 #global variables used by this script:
 #   INST_SYSTEM - System variant for installation - defined in the master script

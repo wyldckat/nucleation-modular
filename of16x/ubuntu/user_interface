@@ -6,6 +6,19 @@
 
 #global variables used by this script:
 #   INST_SYSTEM - System variant for installation - defined in the master script
+#   SYSTEM_VERSION - must be defined before sourcing this script. It holds the version for the system 
+#                    script of the same name as this one.
+#   GUI_BACKTITLE - The back title for the dialogs
+#   INSTALLMODE   - option for the installation mode - defined in common/user_interface
+#   USE_REPO_PV         - option for using the system's ParaView - defined in common/user_interface
+#   USE_KITWARE_PV         - option for using the system's ParaView - defined in common/user_interface
+#   BUILD_QT            - option for building Qt - defined in common/user_interface
+#   BUILD_PARAVIEW      - option for building ParaView - defined in common/user_interface
+#   BUILD_PARAVIEW_WITH_GUI - option for building ParaView with GUI - defined in common/user_interface
+#   BUILD_PARAVIEW_WITH_MPI - option for building ParaView with MPI - defined in common/user_interface
+#   BUILD_PARAVIEW_WITH_PYTHON - option for building ParaView with Python - defined in common/user_interface
+#   BUILD_PARAVIEW_WITH_OSMESA - option for building ParaView with OSMesa - defined in common/user_interface
+
 
 #Code -----------------------------------------
 echo "Sourcing User Interface functions for OpenFOAM 1.6.x and Ubuntu..."

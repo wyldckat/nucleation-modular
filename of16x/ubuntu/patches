@@ -1,7 +1,12 @@
 #!/bin/bash
 
 #-- PATCHING FUNCTIONS For Ubuntu ------------------------------------------------------
+#list of functions herein:
 
+#global variables used by this script:
+
+
+#Code -----------------------------------------
 echo "Sourcing patching functions for OpenFOAM 1.6.x, specific to Ubuntu..."
 
 #-- FUNCTIONS -----------------------------------------------------

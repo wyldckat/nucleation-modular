@@ -68,12 +68,20 @@ echo "- Architecture: $arch"
 INST_SYSTEM=generic
 SYSTEM_VERSION=1.0
 
-if [ -e "/etc/lsb-release" ]; then
-  #Check if it's Ubuntu
-  if [ `cat /etc/lsb-release | grep DISTRIB_ID= | sed s/DISTRIB_ID=//g` == "Ubuntu" ]; then
+if [ -e "/etc/lsb-release" ]; then #checking "lsb-release" based distros
+
+  #Check if it's Ubuntu... or any Ubuntu variant with "[Uu]buntu" in the name
+  #if [ `grep "DISTRIB_ID=" /etc/lsb-release | sed s/DISTRIB_ID=//g` == "Ubuntu" ]; then
+  if grep -i 'Ubuntu' /etc/lsb-release > /dev/null; then
     INST_SYSTEM=ubuntu
-    SYSTEM_VERSION=`cat /etc/lsb-release | grep DISTRIB_RELEASE= | sed s/DISTRIB_RELEASE=//g`
+    SYSTEM_VERSION=`grep "DISTRIB_RELEASE=" /etc/lsb-release | sed s/DISTRIB_RELEASE=//g`
+  
+  #For Debian releases!?
+  #elif grep -i 'Debian' /etc/lsb-release > /dev/null; then
   fi
+
+#elif [ -e "/etc/SuSE-release" ]; then #checking SuSe based distros
+#elif [ -e "/etc/redhat-release" ]; then #checking RedHat based distros
 fi
 
 echo "- System: $INST_SYSTEM"

@@ -2,10 +2,12 @@
 
 #-- USER INTERFACE FUNCTIONS ------------------------------------------------------
 #list of functions herein:
-#    define_system_custom_optionals()
+#   define_system_custom_optionals()
 
 #global variables used by this script:
 #   INST_SYSTEM - System variant for installation - defined in the master script
+#   DOUPGRADE   - option for using upgrade in apt-get - defined by define_system_custom_optionals()
+
 
 #Code -----------------------------------------
 echo "Sourcing User Interface functions for Ubuntu..."

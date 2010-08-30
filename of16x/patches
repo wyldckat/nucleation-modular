@@ -4,7 +4,8 @@
 #list of functions herein:
 
 #global variables used by this script:
-#   SYSTEM_VERSION - must be defined before sourcing this script. It holds the name for the system 
+#   INST_SYSTEM - System variant for installation - defined in the master script
+#   SYSTEM_VERSION - must be defined before sourcing this script. It holds the version for the system 
 #                    script of the same name as this one.
 #   SCRIPT_WORKFOLDER - the folder where the main script's dependency files are located
 #   OF_SHORT_VERSION - the short version of OpenFOAM to be installed. Example: 16x

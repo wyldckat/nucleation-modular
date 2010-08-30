@@ -6,6 +6,22 @@
 #    install_dialog_package()
 
 #global variables used by this script:
+#   SHOW_SUDO_COMMANDS_ONLY - option for showing or direct usage of install commands - defined in ask_for_sudo_policy()
+#   SYSTEM_VERSION - must be defined before sourcing this script. It holds the version for the system 
+#                    script of the same name as this one.
+#   arch - the architecture for the build - defined in the master script
+#   PACKAGES_TO_INSTALL - list (not an array) of packages that need to be installed - defined in install_dialog_package()
+#   BUILD_QT            - option for building Qt - defined in common/user_interface
+#   BUILD_PARAVIEW      - option for building ParaView - defined in common/user_interface
+#   BUILD_PARAVIEW_WITH_GUI - option for building ParaView with GUI - defined in common/user_interface
+#   BUILD_PARAVIEW_WITH_MPI - option for building ParaView with MPI - defined in common/user_interface
+#   BUILD_PARAVIEW_WITH_PYTHON - option for building ParaView with Python - defined in common/user_interface
+#   BUILD_PARAVIEW_WITH_OSMESA - option for building ParaView with OSMesa - defined in common/user_interface
+#   BUILD_DOCUMENTATION - option for building OpenFOAM's code documentation - defined in common/user_interface
+#   BUILD_GCC           - option for doing a custom build of gcc - defined in common/user_interface
+#   BUILD_GCC_STRICT_64BIT - option for doing a custom build of gcc but only the 64bit version (no multilib) - defined in common/user_interface
+#   USE_REPO_PV         - option for using the system's ParaView - defined in common/user_interface
+#   USE_KITWARE_PV         - option for using the system's ParaView - defined in common/user_interface
 
 
 #Code -----------------------------------------
