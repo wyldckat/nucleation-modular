@@ -26,10 +26,12 @@ Done:
           main_functions
         of16x
           patches
+          fixes
           user_functions
           main_functions
         of16x/$INST_SYSTEM
           patches
+          fixes
           user_functions
 
 
@@ -56,6 +58,14 @@ Done:
   - modify the "*versionning* mechanism" that is tightly coupled to Ubuntu
   versions into an abstract mechanism. Now things related to specific systems are left on the side.
 
+  - provide a summary of items that failed to build at the end of the
+   installation, along with the option for making a nice little package
+   with the related failed items logs, for the user to post online;
+   - in the end give the final report and create the package,
+   whether he/she likes it or not :) But posting is up to the user.
+
+  - add "use System OpenMPI" option;
+
 Tasks to do:
 
   - Now with "Ubuntu" and "Generic" options, put code that is "Ubuntu
@@ -63,18 +73,13 @@ Tasks to do:
   another module script for the "Unknown Linux" option.
       ^- half done, still have to create the Generic counterpart
 
-  - The unknown option will rely on user input to provide an additional
-  on what generation the Linux box or with which Linux distro is it similar
-  to. Either way, it will only provide hints on what packages should be
-  installed in the Linux box, and will try to infer what might be missing...
-
-  - provide a summary of items that failed to build at the end of the
-   installation, along with the option for making a nice little package
-   with the related failed items logs, for the user to post online;
+    - The unknown option will rely on user input to provide an additional
+    on what generation the Linux box or with which Linux distro is it similar
+    to. Either way, it will only provide hints on what packages should be
+    installed in the Linux box, and will try to infer what might be missing...
 
 
 Unsorted tasks:
-   2. add "use System OpenMPI" option;
    3. improve the dialog system:
       1. to include the custom options in a less *wreck-less* way;
       2. strictly separate options that are client side from server side

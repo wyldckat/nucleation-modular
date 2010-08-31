@@ -42,10 +42,16 @@ function apply_patches()
   if [ "$arch" == "x86" ]; then
     patchBashrcTo32
   fi
+
   #Fix for using the system's compiler
   if [ "x$USE_OF_GCC" == "xoff" ]; then
     patchSettingsToSystemCompiler
   fi #for using the system's compiler
+
+  #patch the bashrc file for using the system's OpenMPI
+  if [ "x$USE_SYSTEM_OPENMPI" == "xon" ]; then
+    patchBashrcToSystemOpenMPI
+  fi
 
   #apply patch for paraFoam, for when the running language
   #isn't the standard english!
@@ -161,6 +167,30 @@ echo '--- ../../bashrc  2009-11-21 00:00:47.502453988 +0000
 
  # WM_PRECISION_OPTION = DP | SP
  : ${WM_PRECISION_OPTION:=DP}; export WM_PRECISION_OPTION' | patch -p0
+
+cd $tmpVar
+unset tmpVar
+}
+
+#patch the bashrc file for using the system's OpenMPI
+function patchBashrcToSystemOpenMPI()
+{
+tmpVar=$PWD
+cd_openfoam
+cd OpenFOAM-${OF_LONG_VERSION}/etc/
+
+echo '--- bashrc.orig 2010-08-31 18:09:24.000000000 +0100
++++ bashrc  2010-08-31 18:10:13.000000000 +0100
+@@ -102,7 +102,7 @@
+ : ${WM_COMPILE_OPTION:=Opt}; export WM_COMPILE_OPTION
+
+ # WM_MPLIB = | OPENMPI | MPICH | MPICH-GM | HPMPI | GAMMA | MPI | QSMPI
+-: ${WM_MPLIB:=OPENMPI}; export WM_MPLIB
++: ${WM_MPLIB:=SYSTEMOPENMPI}; export WM_MPLIB
+
+
+ # Run options (floating-point signal handling and memory initialisation)
+' | patch -p0
 
 cd $tmpVar
 unset tmpVar

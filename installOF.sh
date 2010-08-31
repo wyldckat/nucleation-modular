@@ -17,10 +17,16 @@
 #GLOBAL VARIABLES
 #Main page URL
 MAIN_PAGE_URL="http://code.google.com/p/openfoam-ubuntu"
+
 #This script's repository
 SCRIPT_REPO="http://modular.openfoam-ubuntu.googlecode.com/hg/"
+
 #The script's dependencies
 SCRIPT_TARBALL="installOF.tar.gz"
+
+#The forum thread for reports and project's page for issues
+FORUM_THREAD="http://www.cfd-online.com/Forums/openfoam-installation/73805-openfoam-1-6-x-installer-ubuntu.html"
+SCRIPT_ISSUES_URL="https://code.google.com/p/openfoam-ubuntu/issues/list"
 
 #Code ---------------------------------------------------------
 #Starting script

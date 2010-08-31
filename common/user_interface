@@ -212,8 +212,9 @@ function define_custom_optionals()
       2 "Use startFoam alias" $USE_ALIAS_FOR_BASHRC \
       3 "Use OpenFOAM gcc compiler" $USE_OF_GCC \
       4 "Build ccm26ToFoam" $BUILD_CCM26TOFOAM \
-      5 "Install ParaView from repository" $USE_REPO_PV \
-      6 "Download latest ParaView from Kitware" $USE_KITWARE_PV )
+      5 "Use System's OpenMPI" $USE_SYSTEM_OPENMPI \
+      6 "Install ParaView from repository" $USE_REPO_PV \
+      7 "Download latest ParaView from Kitware" $USE_KITWARE_PV )
 
       if [ x"$?" == x"0" ]; then
         break;
@@ -227,6 +228,7 @@ function define_custom_optionals()
     USE_ALIAS_FOR_BASHRC=off
     USE_OF_GCC=off
     BUILD_CCM26TOFOAM=off
+    USE_SYSTEM_OPENMPI=off
     USE_REPO_PV=off
     USE_KITWARE_PV=off
     for setting in $SETTINGSOPTS ; do
@@ -234,8 +236,9 @@ function define_custom_optionals()
       if [ $setting == 2 ] ; then USE_ALIAS_FOR_BASHRC=on ; fi
       if [ $setting == 3 ] ; then USE_OF_GCC=on ; fi
       if [ $setting == 4 ] ; then BUILD_CCM26TOFOAM=on ; fi
-      if [ $setting == 5 ] ; then USE_REPO_PV=on ; fi
-      if [ $setting == 6 ] ; then USE_KITWARE_PV=on ; fi
+      if [ $setting == 5 ] ; then USE_SYSTEM_OPENMPI=on ; fi
+      if [ $setting == 6 ] ; then USE_REPO_PV=on ; fi
+      if [ $setting == 7 ] ; then USE_KITWARE_PV=on ; fi
     done
   fi
 }

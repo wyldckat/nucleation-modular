@@ -120,6 +120,10 @@ function install_packages()
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL texinfo byacc"
   fi
 
+  if [ "x$USE_SYSTEM_OPENMPI" == "xon" ]; then
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL openmpi-common openmpi-bin openmpi-doc"
+  fi
+
   if [ "$arch" == "x64" ]; then
     if [ "x$BUILD_GCC_STRICT_64BIT" != "xon" -o "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
       PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL ia32-libs"
