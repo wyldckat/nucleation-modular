@@ -21,7 +21,7 @@
 #   EndLog()
 
 #global variables used by this script:
-#   INST_SYSTEM - must be defined before sourcing this script. It holds the name for the system 
+#   INST_SYSTEM - must be defined before sourcing this script. It holds the name for the system
 #                    script of the same name as this one.
 #   SCRIPT_WORKFOLDER - the folder where the main script's dependency files are located
 #   PACKAGES_TO_INSTALL - list of packages to be installed - used by prune_packages_to_install()
@@ -171,17 +171,17 @@ function create_OpenFOAM_folder()
 #this function retrieves the md5sums from www.openfoam.com
 #the retrieved checksums are stored in the file "OFpackages.md5"
 #NOTE: outdated function, but kept just in case as a reference!
-function get_md5sums_for_OFpackages()
-{
-  w3m -dump -T text/html http://www.openfoam.com/download/linux32.php | grep gtgz | \
-    sed -e 's/.*\(OpenFOAM.*\.gtgz\)[\ ]*\([a-z0-9]*$\)/\2  \1/' -e 's/.*\(ThirdParty.*\.gtgz\)[\ ]*\([a-z0-9]*$\)/\2  \1/' | \
-    grep -e '^[a-z0-9]\{32\}' > OFpackages32.md5
-  w3m -dump -T text/html http://www.openfoam.com/download/linux64.php | grep gtgz | \
-    sed -e 's/.*\(OpenFOAM.*\.gtgz\)[\ ]*\([a-z0-9]*$\)/\2  \1/' -e 's/.*\(ThirdParty.*\.gtgz\)[\ ]*\([a-z0-9]*$\)/\2  \1/' | \
-    grep -e '^[a-z0-9]\{32\}' > OFpackages64.md5
-  cat OFpackages32.md5 OFpackages64.md5 | sort | uniq > OFpackages.md5
-  rm -f OFpackages32.md5 OFpackages64.md5
-}
+# function get_md5sums_for_OFpackages()
+# {
+#   w3m -dump -T text/html http://www.openfoam.com/download/linux32.php | grep gtgz | \
+#     sed -e 's/.*\(OpenFOAM.*\.gtgz\)[\ ]*\([a-z0-9]*$\)/\2  \1/' -e 's/.*\(ThirdParty.*\.gtgz\)[\ ]*\([a-z0-9]*$\)/\2  \1/' | \
+#     grep -e '^[a-z0-9]\{32\}' > OFpackages32.md5
+#   w3m -dump -T text/html http://www.openfoam.com/download/linux64.php | grep gtgz | \
+#     sed -e 's/.*\(OpenFOAM.*\.gtgz\)[\ ]*\([a-z0-9]*$\)/\2  \1/' -e 's/.*\(ThirdParty.*\.gtgz\)[\ ]*\([a-z0-9]*$\)/\2  \1/' | \
+#     grep -e '^[a-z0-9]\{32\}' > OFpackages64.md5
+#   cat OFpackages32.md5 OFpackages64.md5 | sort | uniq > OFpackages.md5
+#   rm -f OFpackages32.md5 OFpackages64.md5
+# }
 
 # the 1st argument is the base address
 # the 2nd argument is the file name
@@ -189,7 +189,7 @@ function get_md5sums_for_OFpackages()
 # the 4th argument is additional arguments to be given to wget before the URL
 function do_wget()
 {
-  #either get the whole file, or try completing it, in case the user 
+  #either get the whole file, or try completing it, in case the user
   #used previously Ctrl+C
   wget_string="$1$2"
   if [ "x$3" != "x" -a "x$3" != "x " ]; then
@@ -229,7 +229,7 @@ function do_md5sum()
   set -e
 }
 
-#this function will do wget and md5sum, and provide the possibility of 
+#this function will do wget and md5sum, and provide the possibility of
 #retrying to retrieve the same file in case of failure!
 #arguments: first 3 are for wget, the last one is the file with the md5sum list
 function do_wget_md5sum()

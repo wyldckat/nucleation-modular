@@ -26,7 +26,7 @@
 
 
 #Code -----------------------------------------
-echo "Sourcing Main functions for Ubuntu ..."
+echo "Sourcing Main functions for Generic System ..."
 
 #FUNCTIONS ------------------------------------------------------------------------------
 
@@ -37,22 +37,15 @@ echo "Sourcing Main functions for Ubuntu ..."
 function ask_for_sudo_policy()
 {
   echo '-----------------------------------------------------------'
-  echo '      Welcome to the OpenFOAM Installer for Ubuntu  '
+  echo 'Welcome to the OpenFOAM Installer for Generic Linux System '
   echo ' '
-  echo '  Before starting this script, it is necessary to define'
-  echo 'what policy should be used by this script, when installing'
-  echo 'new packages in Ubuntu. More specifically, superuser access'
-  echo 'will be required for installing packages, by calling the '
-  echo 'command "sudo".'
-  echo '  If you have superuser permissions and trust this script '
-  echo 'to use the sudo command, then type yes then hit return. '
-  echo -e 'Otherwise, type no:'
-  echo "(yes or no): "
+  echo "  Since this installation script doesn't have guidelines"
+  echo "specific to your system, it will try to guide you in which"
+  echo "packages are needed for you to install. So keep a separate"
+  echo "terminal ready for installing packages, or an email ready"
+  echo "for your system's administrator."
+  echo -e 'Press return or enter to continue...'
   read casestat;
-  case $casestat in
-    yes | y | Y | Yes | YES) SHOW_SUDO_COMMANDS_ONLY="";;
-    no | n | N | No | NO) SHOW_SUDO_COMMANDS_ONLY="YES";;
-  esac
   unset casestat
   echo "------------------------------------------------------"
 }
@@ -62,26 +55,13 @@ function ask_for_sudo_policy()
 function install_dialog_package()
 {
   if ! ispackage_installed dialog; then
-    #if permission granted
-    if [ "x$SHOW_SUDO_COMMANDS_ONLY" != "xYES" ]; then
-      #tell the user that dialog has to be installed, and request permission to install it
-      echo 'This script needs the package "dialog" to be installed. It will execute the command:'
-      echo '      sudo apt-get install dialog'
-      echo 'which will (or should) request for your sudo password...'
-      sudo apt-get install -q=2 dialog
-    else
-      #tell the user that dialog has to be installed, and request permission to install it
-      echo 'This script needs the package "dialog" to be installed. Please execute the following command:'
-      echo '      sudo apt-get install dialog'
-      echo ' '
-      echo 'Please open a new terminal and execute the command above.'
-      echo 'If you do not have superuser powers to run the "sudo" command, then please request your system administrator to run the command above.'
-      echo ' '
-      echo 'When the installation is complete, please press enter to continue this script.'
-      echo 'If you don''t want to install it now, press Ctrl+C.'
-      read aaa_tmp_var
-      unset aaa_tmp_var
-    fi
+    #tell the user that dialog has to be installed, and request permission to install it
+    echo 'This script needs the package/application "dialog" to be installed. Please install it in a separate terminal.'
+    echo ' '
+    echo 'When the installation of the package is complete, please press enter to continue this script.'
+    echo 'If you don''t want to install it now, press Ctrl+C.'
+    read aaa_tmp_var
+    unset aaa_tmp_var
   fi
 
   #confirm it's installed
@@ -91,58 +71,60 @@ function install_dialog_package()
   fi
 }
 
-#install packages in Ubuntu
+#Generate a list of packages that need to be installed, and try to check if they exist or not.
 #NOTE: This function must always exist!
 function install_packages()
 {
   #define which packages need to be installed
-  PACKAGES_TO_INSTALL="pv binutils-dev flex bison git-core build-essential libreadline5-dev wget zlib1g-dev"
+  #applications:
+  PACKAGES_TO_INSTALL="addr2line ranlib ld flex flex++ bison git tar wget sed grep hostname gcc g++ awk locate"
+
+  #libraries:
+  PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libiberty libreadline libz"
+
+  #headers:
+  PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL bfd.h libiberty.h FlexLexer.h zlib.h"
 
   if [ "x$BUILD_PARAVIEW" == "xon" ]; then
-    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL python-dev cmake"
-  fi
+    #applications:
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL cmake"
 
-  #for Ubuntu 8.04, a few more packages are needed
-  if isleftlarger_or_equal 8.10 $SYSTEM_VERSION; then
-    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL curl"
-  fi
+    #libraries:
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libpython2.6 libXt libXi libcurl libXt libXi libpng12 libglut libXrender libXrandr libXcursor libXext libfreetype libfontconfig libglib-2.0"
 
-  #for Ubuntu 9.10 and 10.04, a few more packages are needed
-  if isleftlarger_or_equal $SYSTEM_VERSION 9.10; then
-    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libpng12-dev libxt-dev libxi-dev libxrender-dev libxrandr-dev libxcursor-dev libxinerama-dev libfreetype6-dev libfontconfig1-dev libglib2.0-dev"
-    if [ "x$BUILD_PARAVIEW" == "xon" ]; then
-      PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL freeglut3-dev"
-    fi
+    #headers:
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL Python.h StringDefs.h XInput.h png.h glut.h Xrender.h Xrandr.h Xcursor.h freetype.h fontconfig.h glib.h"
   fi
 
   #for documentation, these are necessary
   if [ "x$BUILD_DOCUMENTATION" == "xon" ]; then
-    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL doxygen graphviz"
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL doxygen gvpack"
   fi
 
   #for building gcc, these are necessary
   if [ "x$BUILD_GCC" == "xon" ]; then
-    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL texinfo byacc"
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL makeinfo byacc"
   fi
 
   if [ "x$USE_SYSTEM_OPENMPI" == "xon" ]; then
-    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL openmpi-common openmpi-bin openmpi-doc"
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL mpirun mpicc mpi.h"
   fi
 
   if [ "$arch" == "x64" ]; then
     if [ "x$BUILD_GCC_STRICT_64BIT" != "xon" -o "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
-      PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL ia32-libs"
+      #We haven't got any way to figure out if 32bit libraries are installed with the current search mechanism
+      PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL multilib_ia32-libs_are_needed"
     fi
   fi
 
   #install qt4-dev and qt4-dev-tools only if the custom build isn't used
   if [ "x$BUILD_QT" != "xon" ]; then
-    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libqt4-dev qt4-dev-tools"
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL qmake qdialog.h rcc uic moc qcollectiongenerator"
   fi
 
   #install OSMesa when chosen for ParaView
   if [ "x$BUILD_PARAVIEW_WITH_OSMESA" == "xon" ]; then
-    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libosmesa6 libosmesa6-dev"
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libOSMesa osmesa.h"
   fi
 
   #if paraview from repository option was selected, add it to the list of packages
@@ -156,36 +138,13 @@ function install_packages()
   #only show commands for installation if any packages are missing!
   if [ "x$PACKAGES_TO_INSTALL" != "x" ]; then
 
-    #if permission granted
-    if [ "x$SHOW_SUDO_COMMANDS_ONLY" != "xYES" ]; then
-
-      echo 'The command "sudo apt-get update -y -q=1" is now going to be executed. Please provide sudo password if it asks you.'
-      sudo apt-get update -y -q=1
-      if [ "x$DOUPGRADE" == "xon" ]; then
-        echo 'The command "sudo apt-get upgrade -y" is now going to be executed.'
-        sudo apt-get upgrade -y
-      fi
-
-      echo 'The command:'
-      echo "    sudo apt-get install -y -q=1 $PACKAGES_TO_INSTALL"
-      echo 'is now going to be executed.'
-      sudo apt-get install -y -q=1 $PACKAGES_TO_INSTALL
-
-    else
-
-      echo 'Please run the following commands in another terminal or ask your system''s administrator to run them:'
-      echo '    sudo apt-get update -y -q=1'
-      if [ "x$DOUPGRADE" == "xon" ]; then
-        echo '    sudo apt-get upgrade -y'
-      fi
-      echo "    sudo apt-get install -y -q=1 $PACKAGES_TO_INSTALL"
-      echo ' '
-      echo 'When the installation is complete, please press enter to continue this script.'
-      echo 'If you don''t want to install it now, press Ctrl+C.'
-      read aaa_tmp_var
-      unset aaa_tmp_var
-
-    fi
+    echo 'Please install the following list of files (and respective packages) in another terminal or ask your system''s administrator to run them:'
+    echo "   $PACKAGES_TO_INSTALL"
+    echo ' '
+    echo 'When the installation is complete, please press enter to continue this script.'
+    echo 'If you don''t want to install it now, press Ctrl+C.'
+    read aaa_tmp_var
+    unset aaa_tmp_var
 
   fi
 
@@ -203,7 +162,6 @@ function install_packages()
         exit 1
         ;;
     esac
-    unset casestat
   fi
 }
 
@@ -219,6 +177,7 @@ function define_script_s_files_system()
 #NOTE: This function must always exist!
 function define_default_user_options_system()
 {
-  DOUPGRADE=off  #on | off
+  #Nothing to do for now...
+  :
 }
 

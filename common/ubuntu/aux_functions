@@ -3,6 +3,7 @@
 #-- UTILITY FUNCTIONS For Ubuntu ------------------------------------------------------
 #list of functions herein:
 #   ispackage_installed()
+#   unTar()
 
 #global variables used by this script:
 
@@ -29,3 +30,20 @@ function ispackage_installed()
   set -e
 }
 
+#usage: unTar format_z_j_lzma file_path files_to_extract
+#NOTE: This function must always exist!
+function unTar()
+{
+  TAR_OPT=$1
+  TAR_FILE="$2"
+
+  #TODO: option "-n" in "pv" will allow the usage of "dialog --gauge" :)
+  case $TAR_OPT in
+  z | j)
+    pv $TAR_FILE | tar -x$TAR_OPT $*
+    ;;
+  *)
+    pv $TAR_FILE | tar --$TAR_OPT -x $*
+    ;;
+  esac
+}

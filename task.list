@@ -1,3 +1,4 @@
+--------------------------------------
 Done:
   - integrate/adapt the changes made by Anton into the release version of
   the script;
@@ -66,19 +67,27 @@ Done:
 
   - add "use System OpenMPI" option;
 
-Tasks to do:
-
   - Now with "Ubuntu" and "Generic" options, put code that is "Ubuntu
   only" in one module script and copy-paste-change those same functions into
   another module script for the "Unknown Linux" option.
-      ^- half done, still have to create the Generic counterpart
-
     - The unknown option will rely on user input to provide an additional
     on what generation the Linux box or with which Linux distro is it similar
     to. Either way, it will only provide hints on what packages should be
     installed in the Linux box, and will try to infer what might be missing...
 
+--------------------------------------
 
+
+
+--------------------------------------
+Tasks to do:
+
+
+
+--------------------------------------
+
+
+--------------------------------------
 Unsorted tasks:
    3. improve the dialog system:
       1. to include the custom options in a less *wreck-less* way;
@@ -108,7 +117,11 @@ Unsorted tasks:
       3. have to figure out with which versions of Qt does ParaView 3.8.0
       build and work well!
 
+--------------------------------------
 
+
+
+--------------------------------------
 Tasks yet to do in the documentation:
 
    - translating the FAQ in Portuguese to English;
@@ -117,3 +130,5 @@ Tasks yet to do in the documentation:
    default/most used options);
    - create a more detailed tutorial, explaining the *repercussions* of each
    option :) .
+
+--------------------------------------

@@ -249,8 +249,8 @@ function define_paraview_options()
 {
   #ParaView configurations for a fresh install
   #skip Paraview Build options if install from Repo or Kitware was selected
-  if [ "x$CUSTOMOPTS_PARAVIEW" == "xYes" ] && \
-     ! [ "$INSTALLMODE" == "fresh" -a "$USE_REPO_PV" == "Yes" -o "$USE_KITWARE_PV" == "Yes" ]; then
+  if [ "x$CUSTOMOPTS_PARAVIEW" == "xon" ] && \
+     ! [ "$INSTALLMODE" == "fresh" -a "$USE_REPO_PV" == "on" -o "$USE_KITWARE_PV" == "on" ]; then
     while : ; do
       PVSETTINGSOPTS=$(dialog --stdout --separate-output \
       --backtitle "$GUI_BACKTITLE"         \
@@ -326,8 +326,8 @@ function gcc_related_options()
     BUILD_GCC=off
     BUILD_GCC_STRICT_64BIT=off #this is optionable for x86_64 only
     for setting in $GCCSETTINGSOPTS ; do
-      if [ $setting == 1 ] ; then BUILD_GCC=Yes ; fi
-      if [ $setting == 2 ] ; then BUILD_GCC_STRICT_64BIT=Yes ; fi
+      if [ $setting == 1 ] ; then BUILD_GCC=on ; fi
+      if [ $setting == 2 ] ; then BUILD_GCC_STRICT_64BIT=on ; fi
     done
   fi
 
