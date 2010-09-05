@@ -75,13 +75,15 @@ Done:
     to. Either way, it will only provide hints on what packages should be
     installed in the Linux box, and will try to infer what might be missing...
 
+  - In the installation mode dialog - typo, this should be 'current' instead of 'currenty'
+  - During the build - "If you want to, you can follow the progress of this build process, by opening a new terminal and running:": The second comma is wrong IMO
+
 --------------------------------------
 
 
 
 --------------------------------------
 Tasks to do:
-
 
 
 --------------------------------------
