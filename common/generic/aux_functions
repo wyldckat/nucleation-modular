@@ -76,6 +76,7 @@ function unTar()
 {
   TAR_OPT=$1
   TAR_FILE="$2"
+  shift 2
 
   case $TAR_OPT in
   z | j)

@@ -19,7 +19,7 @@
 MAIN_PAGE_URL="http://code.google.com/p/openfoam-ubuntu"
 
 #This script's repository
-SCRIPT_REPO="http://modular.openfoam-ubuntu.googlecode.com/hg/"
+SCRIPT_REPO="http://modular.openfoam-ubuntu.googlecode.com/hg"
 
 #The script's dependencies
 SCRIPT_TARBALL="installOF.tar.gz"
@@ -94,7 +94,7 @@ echo "- System: $INST_SYSTEM"
 echo "- System version: $SYSTEM_VERSION"
 
 #create work folder
-SCRIPT_WORKFOLDER="${0%/*}/${0##*/}Files"
+SCRIPT_WORKFOLDER="${PWD}/${0##*/}Files"
 if [ ! -d "${SCRIPT_WORKFOLDER}" ]; then
   echo "Creating the work folder ${SCRIPT_WORKFOLDER}"
   mkdir -p ${SCRIPT_WORKFOLDER} || ( echo "Unable to create the work folder ${SCRIPT_WORKFOLDER}. Aborting." ; exit 1 )

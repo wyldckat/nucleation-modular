@@ -109,6 +109,7 @@ function should_keep_inst_log()
 {
   #Base log folder
   BASE_LOG_FOLDER="${PATHOF}/buildLogs"
+  mkdir -p ${BASE_LOG_FOLDER}
 
   #Logging option Dialog
   while : ; do
@@ -207,7 +208,7 @@ function define_custom_optionals()
     while : ; do
       SETTINGSOPTS=$(dialog --stdout --separate-output \
       --backtitle "$GUI_BACKTITLE"         \
-      --checklist "Choose Install settings: < Space to select ! >" 15 50 6 \
+      --checklist "Choose Install settings: < Space to select ! >" 15 50 7 \
       1 "Build OpenFOAM docs" $BUILD_DOCUMENTATION \
       2 "Use startFoam alias" $USE_ALIAS_FOR_BASHRC \
       3 "Use OpenFOAM gcc compiler" $USE_OF_GCC \
@@ -421,10 +422,10 @@ function final_interface_before_install()
 | \\      /    The choosed mirror is: $mirror\n
 |  \\    /     Logging: $LOG_OUTPUTS\n
 |   \\  /      Install mode: $INSTALLMODE\n
-|    \\/       Run apt-get upgrade ? $DOUPGRADE\n
-| *installOF* Build documentation ? $BUILD_DOCUMENTATION\n
-| *settings*  Use startFoam alias ? $USE_ALIAS_FOR_BASHRC\n
-|             Use OpenFOAM gcc ? $USE_OF_GCC\n
+|    \\/       Build documentation ? $BUILD_DOCUMENTATION\n
+| *installOF* Use startFoam alias ? $USE_ALIAS_FOR_BASHRC\n
+| *settings*  Use OpenFOAM gcc ? $USE_OF_GCC\n
+|             Build ParaView ? $BUILD_PARAVIEW\n
 -------------------------------------------------------------------------\n
 !For more info see documentation on $MAIN_PAGE_URL" 15 80)
 

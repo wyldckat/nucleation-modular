@@ -49,7 +49,7 @@ function define_default_user_options()
   CUSTOMOPTS_PARAVIEW=off     #on | off
 
   BUILD_DOCUMENTATION=off     #on | off
-  USE_ALIAS_FOR_BASHRC=off    #on | off
+  USE_ALIAS_FOR_BASHRC=on     #on | off
   USE_OF_GCC=off              #on | off
   BUILD_CCM26TOFOAM=off       #on | off
   USE_SYSTEM_OPENMPI=off      #on | off
