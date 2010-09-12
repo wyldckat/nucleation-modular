@@ -1,0 +1,259 @@
+#!/bin/bash
+
+#-- MAIN FUNCTIONS ------------------------------------------------------
+#list of functions herein:
+
+#global variables used by this script:
+
+
+#Code -----------------------------------------
+echo "Sourcing Main functions for OpenFOAM ${OF_LONG_VERSION} ..."
+
+#source system related script
+if [ "x$INST_SYSTEM" != "x" -a "x${SCRIPT_WORKFOLDER}" != "x" ]; then
+  . ${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/${INST_SYSTEM}/main_functions
+else
+  echo "The variable INST_SYSTEM and/or SCRIPT_WORKFOLDER is/are empty and they are crucial to exist! Aborting execution."
+  exit 1
+fi
+
+#FUNCTIONS ------------------------------------------------------------------------------
+
+#Defining packages and servers to download from
+#NOTE: This function must always exist!
+function define_packages_to_download()
+{
+
+  #OpenFOAM's sourceforge repository
+  OPENFOAM_SOURCEFORGE="http://downloads.sourceforge.net/foam"
+  SOURCEFORGE_URL_OPTIONS="?use_mirror=$mirror"
+
+  #OpenFOAM's Git repository
+  OPENFOAM_GIT_REPO="http://repo.or.cz/r/OpenFOAM-${OF_LONG_VERSION}.git"
+
+  #Third Party files to download
+  THIRDPARTY_GENERAL="ThirdParty-1.6.General.gtgz"
+  if [ "$arch" == "x64" ]; then
+    THIRDPARTY_BIN="ThirdParty-1.6.linux64Gcc.gtgz"
+  elif [ "$arch" == "x86" ]; then
+    THIRDPARTY_BIN="ThirdParty-1.6.linuxGcc.gtgz"
+  fi
+
+  if [ "x$USE_KITWARE_PV" == "xon" ]; then
+    #Kitware paraview files to download if USE_KITWARE_PV is selected
+    KV_PV_BASEURL="http://www.paraview.org/files/v3.8"
+    if [ "$arch" == "x64" ]; then
+      #need dir for untaring
+      KV_PV_FILE="ParaView-3.8.0-Linux-x86_64.tar.gz"
+      KV_PV_DIR="ParaView-3.8.0-Linux-x86_64"
+    elif [ "$arch" == "x86" ]; then
+      KV_PV_FILE="ParaView-3.8.0-Linux-i686.tar.gz"
+      KV_PV_DIR="ParaView-3.8.0-Linux-i686"
+    else
+      echo "Sorry, architecture not recognized, aborting."
+      exit 1
+    fi
+  fi
+
+  if [ "x$BUILD_QT" == "xon" ]; then
+    QT_VERSION=4.3.5
+    QT_BASEURL="ftp://ftp.trolltech.com/qt/source"
+    QT_PACKAGEFILE="qt-x11-opensource-src-$QT_VERSION.tar.bz2"
+  fi
+
+  if [ "x$BUILD_CCM26TOFOAM" == "xon" ]; then
+    CCMIO_PACKAGE_VERSION=libccmio-2.6.1
+    CCMIO_PACKAGE="${CCMIO_PACKAGE_VERSION}.tar.gz"
+    CCMIO_BASEURL="https://wci.llnl.gov/codes/visit/3rd_party"
+    CCMIO_BASEURL_EXTRA_PRE="--no-check-certificate"
+  fi
+
+  #define gcc variables and files
+  if [ "x$BUILD_GCC" == "xon" ]; then
+    GCC_VERSION=4.3.3
+  fi
+
+  #also add packages pertinent to each system
+  define_packages_to_download_system
+}
+
+#Define files (including paths) to the files this script provides for of$OF_SHORT_VERSION
+#NOTE: This function must always exist!
+function define_script_s_files_ofv()
+{
+  #Define files (including paths) to the files this script provides for of$OF_SHORT_VERSION/system
+  define_script_s_files_ofv_system
+
+  #modified makeGcc for building gcc that comes with OpenFOAM
+  GCCMODED_MAKESCRIPT[0]="makeGcc433"
+  GCCMODED_MAKESCRIPT[1]="${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/files/${GCCMODED_MAKESCRIPT[0]}"
+
+  #patch file for MPFR for gcc 4.3.3 to build properly
+  MPFRPATCHFILE[0]="patchMPFR"
+  MPFRPATCHFILE[1]="${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/files/${MPFRPATCHFILE[0]}"
+
+  #file with md5 sums for OpenFOAM 1.6 files
+  OPENFOAMMD5SUMSFILE[0]="OFpackages.md5"
+  OPENFOAMMD5SUMSFILE[1]="${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/files/${OPENFOAMMD5SUMSFILE[0]}"
+
+  #files for building libccmio
+  CCMIO_MAKEFILES_FILES[0]="files.AllwmakeLibccmio"
+  CCMIO_MAKEFILES_FILES[1]="${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/files/${CCMIO_MAKEFILES_FILES[0]}"
+
+  CCMIO_MAKEFILES_OPTIONS[0]="options.AllwmakeLibccmio"
+  CCMIO_MAKEFILES_OPTIONS[1]="${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/files/${CCMIO_MAKEFILES_OPTIONS[0]}"
+}
+
+
+#Download necessary files
+function download_files()
+{
+  cd_openfoam #this is a precautionary measure
+
+  #generate md5 sums for "md5sum -check"ing :)
+  #No longer needed since OpenFOAM 1.7 was released...
+  ##get_md5sums_for_OFpackages
+
+  #Download Third Party files for detected system and selected mirror
+  #download Third Party sources
+  do_wget_md5sum "$OPENFOAM_SOURCEFORGE" "$THIRDPARTY_GENERAL" "$SOURCEFORGE_URL_OPTIONS" "${OPENFOAMMD5SUMSFILE[1]}"
+
+  #download Third Party binaries, but only if requested and necessary!
+  if [ "x$THIRDPARTY_BIN" != "x" ]; then
+    do_wget_md5sum "$OPENFOAM_SOURCEFORGE" "$THIRDPARTY_BIN" "$SOURCEFORGE_URL_OPTIONS" "${OPENFOAMMD5SUMSFILE[1]}"
+  fi
+
+  if [ "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
+    do_wget_md5sum "$OPENFOAM_SOURCEFORGE" "$THIRDPARTY_BIN_CMAKE" "$SOURCEFORGE_URL_OPTIONS" "${OPENFOAMMD5SUMSFILE[1]}"
+  fi
+
+  if [ "x$BUILD_QT" == "xon" ]; then
+    do_wget "$QT_BASEURL" "$QT_PACKAGEFILE"
+  fi
+
+  if [ "x$BUILD_CCM26TOFOAM" == "xon" ]; then
+    do_wget "$CCMIO_BASEURL" "$CCMIO_PACKAGE" " " "$CCMIO_BASEURL_EXTRA_PRE"
+  fi
+
+  if [ "x$USE_KITWARE_PV" == "xon" ]; then
+    #get paraview 3.8 from kitware, which has native openfoam reader
+    do_wget "$KV_PV_BASEURL" "$KV_PV_FILE"
+  fi
+}
+
+#Unpack downloaded files
+#NOTE: This function must always exist!
+function unpack_downloaded_files()
+{
+  cd_openfoam #this is a precautionary measure
+
+  echo "------------------------------------------------------"
+  echo "Untar files -- This can take time"
+  if [ "x$INSTALLMODE" != "xcustom" ]; then
+    echo "Untaring $THIRDPARTY_GENERAL"
+    unTar z $THIRDPARTY_GENERAL
+  fi
+
+  #check if $THIRDPARTY_BIN is provided, because one could want to build from sources
+  #TODO: in custom mode, it doesn't unpack because the only situation where it could be necessary is if
+  #      the pre-built ParaView is required back again... and such option doesn't explicitly exist.
+  if [ "x$THIRDPARTY_BIN" != "x" -a "x$INSTALLMODE" != "xcustom" ]; then
+    cd_openfoam
+    echo "Untaring $THIRDPARTY_BIN"
+    unTar z $THIRDPARTY_BIN
+  fi
+
+  #needed for some systems
+  if [ "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
+    cd_openfoam
+    echo "Untaring $THIRDPARTY_BIN_CMAKE"
+    unTar z $THIRDPARTY_BIN_CMAKE ThirdParty-1.6/cmake-2.6.4
+    cd ThirdParty-1.6/cmake-2.6.4/platforms/
+    #this is necessary, since there isn't a pre-build made for 64bit
+    ln -s linux linux64
+  fi
+
+  #Link ThirdParty 1.6 to 1.6.x - redo the link if necessary, just in case...
+  if [ -L "$PATHOF/ThirdParty-${OF_LONG_VERSION}" ]; then
+    unlink "$PATHOF/ThirdParty-${OF_LONG_VERSION}"
+  fi
+  ln -s "$PATHOF/ThirdParty-1.6" "$PATHOF/ThirdParty-${OF_LONG_VERSION}"
+
+  if [ "x$USE_KITWARE_PV" == "xon" ]; then
+    cd_openfoam
+    echo "Untaring $KV_PV_FILE"
+    unTar z $KV_PV_FILE
+    #put ParaView in 3rd Party directory
+    mv "$KV_PV_DIR" "ThirdParty-${OF_LONG_VERSION}/$KV_PV_DIR"
+  fi
+
+  if [ "x$BUILD_QT" == "xon" ]; then
+    cd_openfoam
+    cd ThirdParty-${OF_LONG_VERSION}
+    echo "Untaring $QT_PACKAGEFILE"
+    unTar j ../$QT_PACKAGEFILE
+  fi
+
+  if [ "x$BUILD_CCM26TOFOAM" == "xon" ]; then
+    cd_openfoam
+    cd ThirdParty-${OF_LONG_VERSION}
+    ln -s ../$CCMIO_PACKAGE $CCMIO_PACKAGE
+    #NOTE: unpacking will be done by the AllwmakeLibccmio script
+    if [ -e "${CCMIO_MAKEFILES_FILES[1]}" -a -e "${CCMIO_MAKEFILES_OPTIONS[1]}" ]; then
+      if [ ! -d "wmakeFiles/libccmio/Make" ]; then
+        mkdir -p wmakeFiles/libccmio/Make
+      fi
+      cp "${CCMIO_MAKEFILES_FILES[1]}" wmakeFiles/libccmio/Make/files
+      cp "${CCMIO_MAKEFILES_OPTIONS[1]}" wmakeFiles/libccmio/Make/options
+    fi
+  fi
+
+  #copy modified makeGcc to here
+  if [ "x${GCCMODED_MAKESCRIPT[0]}" != "x" ]; then
+    cd_openfoam
+    cd ThirdParty-${OF_LONG_VERSION}
+    cp ${GCCMODED_MAKESCRIPT[1]} .
+    chmod +x ${GCCMODED_MAKESCRIPT[0]}
+  fi
+  echo "------------------------------------------------------"
+}
+
+#NOTE: This function must always exist!
+function process_online_log_of_timings()
+{
+  #TODO: this value is hard coded for now, since it should come from the output of our timings script
+  #The total count of "make[.]" found in our build_Qt.log
+  BUILD_QT_LAST_BUILD_COUNT=293
+
+  #TODO: this value is hard coded for now, since it should come from the output of our timings script
+  #The total count of "make[.]" found in our build_gcc.log
+  BUILD_GCC_LAST_BUILD_COUNT=556
+
+  #NOTES:
+  #  - ParaView has its own percentage, so we just lift from it
+  #  - OpenFOAM uses wmake, making it relatively easier to estimate automatically,
+  #    thus automatically adapting to new additions in the git repository
+}
+
+#set the gcc root path for OpenFOAM 1.6.x
+#NOTE: This function must always exist!
+function set_BUILD_GCC_ROOT()
+{
+  BUILD_GCC_ROOT="$WM_THIRD_PARTY_DIR/gcc-$GCC_VERSION/platforms/$WM_ARCH$WM_COMPILER_ARCH"
+}
+
+#It will request any fixes deemed necessary to gcc after it is built
+#NOTE: This function must always exist!
+function fix_gcc_if_necessary()
+{
+  #the assessment is that it depends on the target system, so this won't be done directly here
+  #but instead call:
+  fix_gcc_if_necessary_system
+}
+
+#set the Qt root path for OpenFOAM 1.6.x
+#NOTE: This function must always exist!
+function set_QT_PLATFORM_PATH()
+{
+  QT_PLATFORM_PATH="${WM_THIRD_PARTY_DIR}/qt-x11-opensource-src-${QT_VERSION}/platforms/${WM_OPTIONS}"
+}

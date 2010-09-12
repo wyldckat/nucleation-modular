@@ -1,0 +1,52 @@
+#!/bin/bash
+
+#-- FIXING FUNCTIONS For Generic ------------------------------------------------------
+#list of functions herein:
+
+#global variables used by this script:
+
+
+#Code -----------------------------------------
+echo "Sourcing patching functions for OpenFOAM ${OF_LONG_VERSION}, specific to Generic..."
+
+#-- FUNCTIONS -----------------------------------------------------
+
+#Apply fixes associated with the system
+#NOTE: This function must always exist!
+function apply_fixes_system()
+{
+  if [ "x$USE_OF_GCC" == "xon" ]; then
+    #this depends on the existing gcc system version
+    link_gcc433_libraries_to_system
+  fi
+}
+
+function link_gcc433_libraries_to_system()
+{
+  #Define which folder to fix libraries
+  SYSGCC_VERSION="4.33" #will have to assume that all is well
+
+  if [ -x "/usr/bin/gcc" ]; then
+    SYSGCC_VERSION=`/usr/bin/gcc -v 2>&1 | grep "gcc version" | sed -e 's=gcc version \([0-9]\.[0-9]\)\.\([0-9]\).*=\1\2='`
+  fi
+
+  #update libraries, in case the system's libraries are more recent
+  if isleftlarger_or_equal 4.40 $SYSGCC_VERSION; then
+    if [ "$arch" == "x64" ]; then
+      LIBRARY_PATH_TO_FIX=${PATHOF}/ThirdParty-1.6/gcc-$GCC_VERSION/platforms/linux64/lib64
+    elif [ "$arch" == "x86" ]; then
+      LIBRARY_PATH_TO_FIX=${PATHOF}/ThirdParty-1.6/gcc-$GCC_VERSION/platforms/linux/lib
+    fi
+
+    echo "-----------------------------------------------------"
+    echo "Fixing library links"
+    cd $LIBRARY_PATH_TO_FIX
+    mv libstdc++.so.6 libstdc++.so.6.orig
+    ln -s `locate libstdc++.so.6.0 | grep "^/usr/lib" | head -n 1` libstdc++.so.6
+    mv libgcc_s.so.1 libgcc_s.so.1.orig
+    ln -s `locate libgcc_s.so. | grep "^/lib" | head -n 1` libgcc_s.so.1
+    echo "Fix up done"
+    echo "------------------------------------------------------"
+  fi
+}
+

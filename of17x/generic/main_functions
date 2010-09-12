@@ -1,0 +1,48 @@
+#!/bin/bash
+
+#-- USER INTERFACE FUNCTIONS ------------------------------------------------------
+#list of functions herein:
+
+#global variables used by this script:
+#   INST_SYSTEM - System variant for installation - defined in the master script
+
+#Code -----------------------------------------
+echo "Sourcing Main functions functions for OpenFOAM $OF_LONG_VERSION and Ubuntu..."
+
+#Define files (including paths) to the files this script provides for of$OF_SHORT_VERSION/system
+#NOTE: This function must always exist!
+function define_script_s_files_ofv_system()
+{
+  #Nothing to do for now...
+  :
+}
+
+#also define files pertinent to each system
+#NOTE: This function must always exist!
+function define_packages_to_download_system()
+{
+  if [ "$arch" == "x64" ]; then
+    if ! [ "$INSTALLMODE" == "fresh" -a "$USE_REPO_PV" == "on" -o "$USE_KITWARE_PV" == "on" ]; then
+      #CMake is needed in case it isn't provided by the system
+      CMAKEVERSION="0.00"
+      if which cmake > /dev/null; then
+        CMAKEVERSION=`cmake --version | sed -e 's=.*\([0-9]\.[0-9]\)-patch\ =\1='`
+      fi
+      if isleftlarger_or_equal 2.7 $CMAKEVERSION || isleftlarger_or_equal $CMAKEVERSION 0.00; then
+        THIRDPARTY_BIN_CMAKE="ThirdParty-1.6.linuxGcc.gtgz"
+      fi
+    fi
+  fi
+}
+
+#It will request any fixes deemed necessary to gcc after it is built
+#NOTE: This function must always exist!
+function fix_gcc_if_necessary()
+{
+  #TODO: this won't be necessary if we build cmake too, since then there won't be
+  #any more dependencies to the system's libraries!
+  if [ "$arch" == "x64" -a "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
+    #this function is defined in the of16x/generic/fixes script
+    link_gcc433_libraries_to_system
+  fi
+}
