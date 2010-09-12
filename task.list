@@ -78,6 +78,14 @@ Done:
   - In the installation mode dialog - typo, this should be 'current' instead of 'currenty'
   - During the build - "If you want to, you can follow the progress of this build process, by opening a new terminal and running:": The second comma is wrong IMO
 
+  -bugs fixed:
+    - GCC_VERSION not defined when it reaches "/home/nmgs/OF/ThirdParty-1.6/gcc-/platforms/linux64/lib64" AND
+      we are using system libraries, not OpenFOAM's ones. <- fixed
+    - /home/nmgs/OF/buildLogs/16x/ not created <- fixed
+    - unTar didn't use pv <- fixed - had to redirect 2>&4 so we could see the bar
+    - didn't build OpenFOAM, probably due to the previous folder not existing <- fixed - it was because the log file couldn't be created
+    - when taring final report, there was a warning message about trailing '/' <- should be fixed...
+
 --------------------------------------
 
 
@@ -85,13 +93,10 @@ Done:
 --------------------------------------
 Tasks to do:
 
-  -bugs to fix:
-    - GCC_VERSION not defined when it reaches "/home/nmgs/OF/ThirdParty-1.6/gcc-/platforms/linux64/lib64" AND
-      we are using system libraries, not OpenFOAM's ones. <- fixed
-    - /home/nmgs/OF/buildLogs/16x/ not created <- fixed
-    - unTar didn't use pv <- ??
-    - didn't build OpenFOAM, probably due to the previous folder not existing <- ??
-    - when taring final report, there was a warning message about trailing '/' <- ??
+  - bugs to fix:
+
+  - basic tests complete - start implementation of OpenFOAM 1.7.x
+
 
 --------------------------------------
 

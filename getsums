@@ -1,0 +1,15 @@
+#!/bin/bash
+
+#This script is for retrieving md5sums from www.openfoam.com webpages
+
+if [ $# -lt 2 ]; then
+  echo "USAGE: getsums url_to_weg_page target_file"
+  exit 0
+fi
+
+URL=$1
+FILE=$2
+
+w3m -dump -T text/html $URL | grep gtgz | \
+  sed -e 's/.*\(OpenFOAM.*\.gtgz\)[\ ]*\([a-z0-9]*$\)/\2  \1/' -e 's/.*\(ThirdParty.*\.gtgz\)[\ ]*\([a-z0-9]*$\)/\2  \1/' | \
+  grep -e '^[a-z0-9]\{32\}' > $FILE
