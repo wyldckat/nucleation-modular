@@ -41,10 +41,10 @@ function unTar()
   #TODO: option "-n" in "pv" will allow the usage of "dialog --gauge" :)
   case ${TAR_OPT} in
   z | j)
-    pv ${TAR_FILE} | tar -x${TAR_OPT} $* >&4
+    pv ${TAR_FILE} 2>&4 | tar -x${TAR_OPT} $*
     ;;
   *)
-    pv ${TAR_FILE} | tar --${TAR_OPT} -x $* >&4
+    pv ${TAR_FILE} 2>&4 | tar --${TAR_OPT} -x $*
     ;;
   esac
 }

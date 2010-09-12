@@ -1,0 +1,5 @@
+#!/bin/bash
+
+#This script is for packing only.
+#It isn't meant to be part of the installer itself.
+tar -czf installOF.tar.gz common of16x of17x LICENSE
