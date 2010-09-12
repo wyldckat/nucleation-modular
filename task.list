@@ -96,6 +96,8 @@ Tasks to do:
   - bugs to fix:
 
   - basic tests complete - start implementation of OpenFOAM 1.7.x
+    - dialog for picking which version to build. <- done
+    - copied scripts from 1.6.x but barely changed them. There is still a lot to do here...
 
 
 --------------------------------------
