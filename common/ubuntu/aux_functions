@@ -34,7 +34,6 @@ function ispackage_installed()
 #NOTE: This function must always exist!
 function unTar()
 {
-set -x
   TAR_OPT=$1
   TAR_FILE="$2"
   shift 2
@@ -42,11 +41,10 @@ set -x
   #TODO: option "-n" in "pv" will allow the usage of "dialog --gauge" :)
   case ${TAR_OPT} in
   z | j)
-    pv ${TAR_FILE} | tar -x${TAR_OPT} $*
+    pv ${TAR_FILE} | tar -x${TAR_OPT} $* >&4
     ;;
   *)
-    pv ${TAR_FILE} | tar --${TAR_OPT} -x $*
+    pv ${TAR_FILE} | tar --${TAR_OPT} -x $* >&4
     ;;
   esac
-set +x
 }
