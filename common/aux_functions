@@ -191,7 +191,7 @@ function do_wget()
 {
   #either get the whole file, or try completing it, in case the user
   #used previously Ctrl+C
-  wget_string="$1$2"
+  wget_string="$1/$2"
   if [ "x$3" != "x" -a "x$3" != "x " ]; then
     wget_string="$wget_string$3"
   fi

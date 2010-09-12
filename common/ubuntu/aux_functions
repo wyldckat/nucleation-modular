@@ -34,6 +34,7 @@ function ispackage_installed()
 #NOTE: This function must always exist!
 function unTar()
 {
+set -x
   TAR_OPT=$1
   TAR_FILE="$2"
   shift 2
@@ -47,4 +48,5 @@ function unTar()
     pv ${TAR_FILE} | tar --${TAR_OPT} -x $*
     ;;
   esac
+set +x
 }

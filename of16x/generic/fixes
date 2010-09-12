@@ -1,13 +1,13 @@
 #!/bin/bash
 
-#-- FIXING FUNCTIONS For Ubuntu ------------------------------------------------------
+#-- FIXING FUNCTIONS For Generic ------------------------------------------------------
 #list of functions herein:
 
 #global variables used by this script:
 
 
 #Code -----------------------------------------
-echo "Sourcing patching functions for OpenFOAM ${OF_LONG_VERSION}, specific to Ubuntu..."
+echo "Sourcing patching functions for OpenFOAM ${OF_LONG_VERSION}, specific to Generic..."
 
 #-- FUNCTIONS -----------------------------------------------------
 
@@ -15,8 +15,10 @@ echo "Sourcing patching functions for OpenFOAM ${OF_LONG_VERSION}, specific to U
 #NOTE: This function must always exist!
 function apply_fixes_system()
 {
-  #this depends on the existing Ubuntu version
-  link_gcc433_libraries_to_system
+  if [ "x$USE_OF_GCC" == "xon" ]; then
+    #this depends on the existing gcc system version
+    link_gcc433_libraries_to_system
+  fi
 }
 
 function link_gcc433_libraries_to_system()

@@ -208,7 +208,7 @@ function build_openfoam_gcc()
       BUILD_GCC_OPTION="--disable-multilib"
     fi
 
-    BUILD_GCC_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/build_gcc.log"
+    BUILD_GCC_LOG="${BASE_OFVER_LOG_FOLDER}/build_gcc.log"
 
     #set up traps...
     trap build_gcc_ctrl_c_triggered SIGINT SIGQUIT SIGTERM
@@ -321,7 +321,7 @@ function allwmake_openfoam()
   fi
 
   cd $WM_PROJECT_DIR
-  BUILD_AWOPENFOAM_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/make.log"
+  BUILD_AWOPENFOAM_LOG="${BASE_OFVER_LOG_FOLDER}/make.log"
 
   #set up traps...
   trap build_awopenfoam_ctrl_c_triggered SIGINT SIGQUIT SIGTERM
@@ -437,7 +437,7 @@ function allwmake_openfoam_docs()
     fi
 
     cd $WM_PROJECT_DIR
-    BUILD_AWOPENFOAMDOC_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/docmake.log"
+    BUILD_AWOPENFOAMDOC_LOG="${BASE_OFVER_LOG_FOLDER}/docmake.log"
 
     #set up traps...
     trap build_awopenfoam_docs_ctrl_c_triggered SIGINT SIGQUIT SIGTERM
@@ -533,7 +533,7 @@ function check_installation()
 
   cd $WM_PROJECT_DIR
 
-  FOAM_INSTALLATION_TEST_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/foamIT.log"
+  FOAM_INSTALLATION_TEST_LOG="${BASE_OFVER_LOG_FOLDER}/foamIT.log"
 
   echo "------------------------------------------------------"
   echo "Checking installation - you should see NO criticals..."
@@ -763,7 +763,7 @@ function build_Qt()
       rm -rf $QT_PLATFORM_PATH
     fi
 
-    BUILD_QT_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/build_Qt.log"
+    BUILD_QT_LOG="${BASE_OFVER_LOG_FOLDER}/build_Qt.log"
 
     #set up traps...
     trap build_Qt_ctrl_c_triggered SIGINT SIGQUIT SIGTERM
@@ -930,7 +930,7 @@ function build_ParaView()
         PARAVIEW_BUILD_OPTIONS="$PARAVIEW_BUILD_OPTIONS -mesa"
       fi
 
-      PARAVIEW_BUILD_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/build_ParaView.log"
+      PARAVIEW_BUILD_LOG="${BASE_OFVER_LOG_FOLDER}/build_ParaView.log"
 
       #set up traps...
       trap build_ParaView_ctrl_c_triggered SIGINT SIGQUIT SIGTERM
@@ -1018,7 +1018,7 @@ function build_PV3FoamReader()
 
       cd "$FOAM_UTILITIES/postProcessing/graphics/PV3FoamReader"
 
-      PV3FOAMREADER_BUILD_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/build_PV3FoamReader.log"
+      PV3FOAMREADER_BUILD_LOG="${BASE_OFVER_LOG_FOLDER}/build_PV3FoamReader.log"
 
       echo "------------------------------------------------------"
       echo "Build PV3FoamReader for ParaView:"
@@ -1056,9 +1056,9 @@ function build_ccm26ToFoam()
       setOpenFOAMEnv
     fi
 
-    cd "$FOAM_APP/utilities/mesh/conversion/Optional/"
+    cd "$FOAM_APP/utilities/mesh/conversion/Optional"
 
-    BUILD_CCM26TOFOAM_LOG="$BASE_LOG_FOLDER/$OF_SHORT_VERSION/build_ccm26.log"
+    BUILD_CCM26TOFOAM_LOG="${BASE_OFVER_LOG_FOLDER}/build_ccm26.log"
 
     echo "------------------------------------------------------"
     echo "Build ccm26ToFoam:"

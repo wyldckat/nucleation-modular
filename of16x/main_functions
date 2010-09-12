@@ -25,7 +25,7 @@ function define_packages_to_download()
 {
 
   #OpenFOAM's sourceforge repository
-  OPENFOAM_SOURCEFORGE="http://downloads.sourceforge.net/foam/"
+  OPENFOAM_SOURCEFORGE="http://downloads.sourceforge.net/foam"
   SOURCEFORGE_URL_OPTIONS="?use_mirror=$mirror"
 
   #OpenFOAM's Git repository
@@ -41,7 +41,7 @@ function define_packages_to_download()
 
   if [ "x$USE_KITWARE_PV" == "xon" ]; then
     #Kitware paraview files to download if USE_KITWARE_PV is selected
-    KV_PV_BASEURL="http://www.paraview.org/files/v3.8/"
+    KV_PV_BASEURL="http://www.paraview.org/files/v3.8"
     if [ "$arch" == "x64" ]; then
       #need dir for untaring
       KV_PV_FILE="ParaView-3.8.0-Linux-x86_64.tar.gz"
@@ -57,14 +57,14 @@ function define_packages_to_download()
 
   if [ "x$BUILD_QT" == "xon" ]; then
     QT_VERSION=4.3.5
-    QT_BASEURL="ftp://ftp.trolltech.com/qt/source/"
+    QT_BASEURL="ftp://ftp.trolltech.com/qt/source"
     QT_PACKAGEFILE="qt-x11-opensource-src-$QT_VERSION.tar.bz2"
   fi
 
   if [ "x$BUILD_CCM26TOFOAM" == "xon" ]; then
     CCMIO_PACKAGE_VERSION=libccmio-2.6.1
     CCMIO_PACKAGE="${CCMIO_PACKAGE_VERSION}.tar.gz"
-    CCMIO_BASEURL="https://wci.llnl.gov/codes/visit/3rd_party/"
+    CCMIO_BASEURL="https://wci.llnl.gov/codes/visit/3rd_party"
     CCMIO_BASEURL_EXTRA_PRE="--no-check-certificate"
   fi
 

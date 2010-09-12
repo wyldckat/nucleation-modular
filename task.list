@@ -85,6 +85,13 @@ Done:
 --------------------------------------
 Tasks to do:
 
+  -bugs to fix:
+    - GCC_VERSION not defined when it reaches "/home/nmgs/OF/ThirdParty-1.6/gcc-/platforms/linux64/lib64" AND
+      we are using system libraries, not OpenFOAM's ones. <- fixed
+    - /home/nmgs/OF/buildLogs/16x/ not created <- fixed
+    - unTar didn't use pv <- ??
+    - didn't build OpenFOAM, probably due to the previous folder not existing <- ??
+    - when taring final report, there was a warning message about trailing '/' <- ??
 
 --------------------------------------
 

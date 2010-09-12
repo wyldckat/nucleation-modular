@@ -171,6 +171,12 @@ echo "Sourcing scripts related to the chosen OpenFOAM version..."
 echo "Sourcing complete."
 echo "-------------------------------------------------------------"
 
+#Define and create base log folders
+BASE_LOG_FOLDER="${PATHOF}/buildLogs"
+BASE_OFVER_LOG_FOLDER="${BASE_LOG_FOLDER}/${OF_SHORT_VERSION}"
+mkdir -p "${BASE_LOG_FOLDER}"
+mkdir -p "${BASE_OFVER_LOG_FOLDER}"
+
 #Installation mode dialog
 define_install_mode
 

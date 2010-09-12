@@ -107,10 +107,6 @@ function pick_openfoam_path()
 
 function should_keep_inst_log()
 {
-  #Base log folder
-  BASE_LOG_FOLDER="${PATHOF}/buildLogs"
-  mkdir -p ${BASE_LOG_FOLDER}
-
   #Logging option Dialog
   while : ; do
     LOG_OUTPUTS=$(dialog --stdout \
