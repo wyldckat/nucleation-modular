@@ -25,7 +25,7 @@ echo "Sourcing User Interface functions for OpenFOAM 1.6.x..."
 
 #source system related script
 if [ "x$INST_SYSTEM" != "x" -a "x${SCRIPT_WORKFOLDER}" != "x" ]; then
-  . ${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/${INST_SYSTEM}/user_interface
+  . ${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/${INST_SYSTEM}/user_interface
 else
   echo "The variable INST_SYSTEM and/or SCRIPT_WORKFOLDER is/are empty and they are crucial to exist! Aborting execution."
   exit 1

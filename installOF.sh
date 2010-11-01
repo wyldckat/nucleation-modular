@@ -158,22 +158,26 @@ pick_openfoam_path
 #Option for keeping logs of the script's process
 should_keep_inst_log
 
+#Collect and generate options list for dialog
+collect_list_of_versions
+
 #Choose OpenFOAM version to be installed
 pick_openfoam_version
 
 #source version specific scripts
 echo "-------------------------------------------------------------"
 echo "Sourcing scripts related to the chosen OpenFOAM version..."
-. ${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/main_functions
-. ${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/user_interface
-. ${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/patches
-. ${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/fixes
+. ${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/mod.version
+. ${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/main_functions
+. ${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/user_interface
+. ${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/patches
+. ${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/fixes
 echo "Sourcing complete."
 echo "-------------------------------------------------------------"
 
 #Define and create base log folders
 BASE_LOG_FOLDER="${PATHOF}/buildLogs"
-BASE_OFVER_LOG_FOLDER="${BASE_LOG_FOLDER}/${OF_SHORT_VERSION}"
+BASE_OFVER_LOG_FOLDER="${BASE_LOG_FOLDER}/${OF_MODULE_NAME}"
 mkdir -p "${BASE_LOG_FOLDER}"
 mkdir -p "${BASE_OFVER_LOG_FOLDER}"
 

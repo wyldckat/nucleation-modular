@@ -99,6 +99,8 @@ Tasks to do:
     - dialog for picking which version to build. <- done
     - copied scripts from 1.6.x but barely changed them. There is still a lot to do here...
 
+  - generic module list generation, based on using "mod.version" for knowing which modules exist.
+     ⁻ done but untested
 
 --------------------------------------
 

@@ -11,7 +11,7 @@ echo "Sourcing Main functions for OpenFOAM ${OF_LONG_VERSION} ..."
 
 #source system related script
 if [ "x$INST_SYSTEM" != "x" -a "x${SCRIPT_WORKFOLDER}" != "x" ]; then
-  . ${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/${INST_SYSTEM}/main_functions
+  . ${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/${INST_SYSTEM}/main_functions
 else
   echo "The variable INST_SYSTEM and/or SCRIPT_WORKFOLDER is/are empty and they are crucial to exist! Aborting execution."
   exit 1
@@ -86,22 +86,22 @@ function define_script_s_files_ofv()
 
   #modified makeGcc for building gcc that comes with OpenFOAM
   GCCMODED_MAKESCRIPT[0]="makeGcc433"
-  GCCMODED_MAKESCRIPT[1]="${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/files/${GCCMODED_MAKESCRIPT[0]}"
+  GCCMODED_MAKESCRIPT[1]="${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/files/${GCCMODED_MAKESCRIPT[0]}"
 
   #patch file for MPFR for gcc 4.3.3 to build properly
   MPFRPATCHFILE[0]="patchMPFR"
-  MPFRPATCHFILE[1]="${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/files/${MPFRPATCHFILE[0]}"
+  MPFRPATCHFILE[1]="${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/files/${MPFRPATCHFILE[0]}"
 
   #file with md5 sums for OpenFOAM 1.6 files
   OPENFOAMMD5SUMSFILE[0]="OFpackages.md5"
-  OPENFOAMMD5SUMSFILE[1]="${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/files/${OPENFOAMMD5SUMSFILE[0]}"
+  OPENFOAMMD5SUMSFILE[1]="${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/files/${OPENFOAMMD5SUMSFILE[0]}"
 
   #files for building libccmio
   CCMIO_MAKEFILES_FILES[0]="files.AllwmakeLibccmio"
-  CCMIO_MAKEFILES_FILES[1]="${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/files/${CCMIO_MAKEFILES_FILES[0]}"
+  CCMIO_MAKEFILES_FILES[1]="${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/files/${CCMIO_MAKEFILES_FILES[0]}"
 
   CCMIO_MAKEFILES_OPTIONS[0]="options.AllwmakeLibccmio"
-  CCMIO_MAKEFILES_OPTIONS[1]="${SCRIPT_WORKFOLDER}/of${OF_SHORT_VERSION}/files/${CCMIO_MAKEFILES_OPTIONS[0]}"
+  CCMIO_MAKEFILES_OPTIONS[1]="${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/files/${CCMIO_MAKEFILES_OPTIONS[0]}"
 }
 
 

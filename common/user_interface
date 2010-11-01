@@ -147,21 +147,18 @@ function define_install_mode()
 function pick_openfoam_version()
 {
   while : ; do
-    OF_LONG_VERSION=$(dialog --stdout \
-    --backtitle "$GUI_BACKTITLE"    \
-    --radiolist 'Choose which OpenFOAM version to install:' 11 50 2 \
-    '1.6.x'    'Install OpenFOAM 1.6.x' off \
-    '1.7.x'    'Install OpenFOAM 1.7.x' off )
 
-    if [ x"$?" == x"0" ]; then
+    OF_MODULE_NAME=`eval "dialog --stdout \
+    --backtitle \"$GUI_BACKTITLE\"    \
+    --radiolist 'Choose which OpenFOAM version to install:' 11 50 ${OF_VERSIONS_DIALOG_NUM} \
+    ${OF_VERSIONS_DIALOG} "`
+
+    if [ x"$?" == x"0" -a x"$OF_MODULE_NAME" != "x" ]; then
       break;
     else
       cancel_installer
     fi
   done
-
-  #OpenFOAM short version to be installed (not dots)
-  OF_SHORT_VERSION=`echo $OF_LONG_VERSION | sed 's=\.==g'`
 }
 
 #Handle custom options
