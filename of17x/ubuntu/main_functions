@@ -35,10 +35,6 @@ function define_packages_to_download_system()
 #NOTE: This function must always exist!
 function fix_gcc_if_necessary()
 {
-  #TODO: this won't be necessary if we build cmake too, since then there won't be
-  #any more dependencies to the system's libraries!
-  if [ "$arch" == "x64" -a "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
-    #this function is defined in the of16x/ubuntu/fixes script
-    link_gcc433_libraries_to_system
-  fi
+  #Nothing to do
+  :
 }

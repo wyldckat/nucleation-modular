@@ -258,8 +258,7 @@ unset tmpVar
 function patchAllwmakeLibccmioScript()
 {
 tmpVar=$PWD
-cd_openfoam
-cd ThirdParty-${OF_LONG_VERSION}/
+cd_thirdparty
 
 echo '--- ../AllwmakeLibccmio  2009-07-24 13:51:14.000000000 +0100
 +++ AllwmakeLibccmio 2009-10-17 11:29:36.000000000 +0100
@@ -298,8 +297,7 @@ unset tmpVar
 function patchMPFRMissingFiles()
 {
 tmpVar=$PWD
-cd_openfoam
-cd ThirdParty-${OF_LONG_VERSION}/
+cd_thirdparty
 
 if [ -e "${MPFRPATCHFILE[1]}" ]; then
   patch -p1 < ${MPFRPATCHFILE[1]}
@@ -313,8 +311,7 @@ unset tmpVar
 function patchMakeParaViewScript()
 {
 tmpVar=$PWD
-cd_openfoam
-cd ThirdParty-${OF_LONG_VERSION}/
+cd_thirdparty
 
 echo '--- ../makeParaView  2010-04-18 21:49:00.611392700 +0100
 +++ ./makeParaView  2010-04-18 21:50:31.609831213 +0100
@@ -392,8 +389,7 @@ unset tmpVar
 function patchMakeQtScript()
 {
 tmpVar=$PWD
-cd_openfoam
-cd ThirdParty-${OF_LONG_VERSION}/
+cd_thirdparty
 
 echo '--- ../makeQt 2010-04-26 23:10:03.000000000 +0100
 +++ makeQt  2010-04-26 23:11:10.000000000 +0100

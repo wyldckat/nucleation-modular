@@ -108,7 +108,7 @@ function define_script_s_files_ofv()
 #Download necessary files
 function download_files()
 {
-  cd_openfoam #this is a precautionary measure
+  cd_base_downloads
 
   #generate md5 sums for "md5sum -check"ing :)
   #No longer needed since OpenFOAM 1.7 was released...
@@ -151,7 +151,7 @@ function unpack_downloaded_files()
   echo "Untar files -- This can take time"
   if [ "x$INSTALLMODE" != "xcustom" ]; then
     echo "Untaring $THIRDPARTY_GENERAL"
-    unTar z $THIRDPARTY_GENERAL
+    unTar z $BASE_DOWNLOADS_FOLDER/$THIRDPARTY_GENERAL
   fi
 
   #check if $THIRDPARTY_BIN is provided, because one could want to build from sources
@@ -160,14 +160,14 @@ function unpack_downloaded_files()
   if [ "x$THIRDPARTY_BIN" != "x" -a "x$INSTALLMODE" != "xcustom" ]; then
     cd_openfoam
     echo "Untaring $THIRDPARTY_BIN"
-    unTar z $THIRDPARTY_BIN
+    unTar z $BASE_DOWNLOADS_FOLDER/$THIRDPARTY_BIN
   fi
 
   #needed for some systems
   if [ "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
     cd_openfoam
     echo "Untaring $THIRDPARTY_BIN_CMAKE"
-    unTar z $THIRDPARTY_BIN_CMAKE ThirdParty-1.6/cmake-2.6.4
+    unTar z $BASE_DOWNLOADS_FOLDER/$THIRDPARTY_BIN_CMAKE ThirdParty-1.6/cmake-2.6.4
     cd ThirdParty-1.6/cmake-2.6.4/platforms/
     #this is necessary, since there isn't a pre-build made for 64bit
     ln -s linux linux64
@@ -182,21 +182,19 @@ function unpack_downloaded_files()
   if [ "x$USE_KITWARE_PV" == "xon" ]; then
     cd_openfoam
     echo "Untaring $KV_PV_FILE"
-    unTar z $KV_PV_FILE
+    unTar z $BASE_DOWNLOADS_FOLDER/$KV_PV_FILE
     #put ParaView in 3rd Party directory
     mv "$KV_PV_DIR" "ThirdParty-${OF_LONG_VERSION}/$KV_PV_DIR"
   fi
 
   if [ "x$BUILD_QT" == "xon" ]; then
-    cd_openfoam
-    cd ThirdParty-${OF_LONG_VERSION}
+    cd_thirdparty
     echo "Untaring $QT_PACKAGEFILE"
-    unTar j ../$QT_PACKAGEFILE
+    unTar j $BASE_DOWNLOADS_FOLDER/$QT_PACKAGEFILE
   fi
 
   if [ "x$BUILD_CCM26TOFOAM" == "xon" ]; then
-    cd_openfoam
-    cd ThirdParty-${OF_LONG_VERSION}
+    cd_thirdparty
     ln -s ../$CCMIO_PACKAGE $CCMIO_PACKAGE
     #NOTE: unpacking will be done by the AllwmakeLibccmio script
     if [ -e "${CCMIO_MAKEFILES_FILES[1]}" -a -e "${CCMIO_MAKEFILES_OPTIONS[1]}" ]; then
@@ -210,8 +208,7 @@ function unpack_downloaded_files()
 
   #copy modified makeGcc to here
   if [ "x${GCCMODED_MAKESCRIPT[0]}" != "x" ]; then
-    cd_openfoam
-    cd ThirdParty-${OF_LONG_VERSION}
+    cd_thirdparty
     cp ${GCCMODED_MAKESCRIPT[1]} .
     chmod +x ${GCCMODED_MAKESCRIPT[0]}
   fi

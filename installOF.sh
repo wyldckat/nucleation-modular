@@ -178,8 +178,10 @@ echo "-------------------------------------------------------------"
 #Define and create base log folders
 BASE_LOG_FOLDER="${PATHOF}/buildLogs"
 BASE_OFVER_LOG_FOLDER="${BASE_LOG_FOLDER}/${OF_MODULE_NAME}"
+BASE_DOWNLOADS_FOLDER="${PATHOF}/Downloads"
 mkdir -p "${BASE_LOG_FOLDER}"
 mkdir -p "${BASE_OFVER_LOG_FOLDER}"
+mkdir -p "${BASE_DOWNLOADS_FOLDER}"
 
 #Installation mode dialog
 define_install_mode
@@ -259,9 +261,6 @@ if [ "x$INSTALLMODE" != "xupdate" ]; then
 
   #Add OpenFOAM's bashrc entry in $PATHOF/.bashrc
   add_openfoam_to_bashrc
-
-  #fix the tutorials (works only after setting the environment)
-  fix_tutorials
 
   #build gcc
   build_openfoam_gcc

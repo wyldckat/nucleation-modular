@@ -106,6 +106,16 @@ function cd_openfoam()
   cd "$PATHOF"
 }
 
+function cd_thirdparty()
+{
+  cd "$PATHOF/ThirdParty-${OF_LONG_VERSION}"
+}
+
+function cd_base_downloads()
+{
+  cd "$BASE_DOWNLOADS_FOLDER"
+}
+
 function monitor_sleep()
 {
   count_secs=0
@@ -296,4 +306,27 @@ function collect_list_of_versions()
   done
 
   unset mods2load module2load
+}
+
+function fix_tutorials()
+{
+  #fix tutorials, if sh isn't linked to bash
+  if is_sh_bash; then
+
+    cd_openfoam
+    cd OpenFOAM-${OF_LONG_VERSION}/tutorials
+
+    echo "------------------------------------------------------"
+    echo "Fixing call for bash in tutorials (sometimes the default is dash, like in Ubuntu)"
+    #NOTE: searching for patterns requires quotes
+    find . -name "All*" -name "makeMesh" | \
+    while read file
+    do
+        mv "$file" "$file.old"
+        sed '/^#!/ s/\/bin\/sh/\/bin\/bash/' "$file.old" > "$file"
+        rm -f "$file.old"
+    done
+    echo "Fix up bash done"
+    echo "------------------------------------------------------"
+  fi
 }

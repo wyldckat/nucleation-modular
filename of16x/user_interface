@@ -2,6 +2,7 @@
 
 #-- USER INTERFACE FUNCTIONS ------------------------------------------------------
 #list of functions herein:
+#   gcc_related_options()
 #   check_options_sanity()
 
 #global variables used by this script:
@@ -12,6 +13,8 @@
 #   GUI_BACKTITLE - The back title for the dialogs
 #   USE_REPO_PV         - option for using the system's ParaView - defined in common/user_interface
 #   USE_KITWARE_PV         - option for using the system's ParaView - defined in common/user_interface
+#   BUILD_GCC           - option for doing a custom build of gcc - defined gcc_related_options()
+#   BUILD_GCC_STRICT_64BIT - option for doing a custom build of gcc but only the 64bit version (no multilib) - defined gcc_related_options()
 #   BUILD_QT            - option for building Qt - defined in common/user_interface
 #   BUILD_PARAVIEW      - option for building ParaView - defined in common/user_interface
 #   BUILD_PARAVIEW_WITH_GUI - option for building ParaView with GUI - defined in common/user_interface
@@ -21,7 +24,7 @@
 
 
 #Code -----------------------------------------
-echo "Sourcing User Interface functions for OpenFOAM 1.6.x..."
+echo "Sourcing User Interface functions for OpenFOAM ${OF_LONG_VERSION}..."
 
 #source system related script
 if [ "x$INST_SYSTEM" != "x" -a "x${SCRIPT_WORKFOLDER}" != "x" ]; then
@@ -30,6 +33,54 @@ else
   echo "The variable INST_SYSTEM and/or SCRIPT_WORKFOLDER is/are empty and they are crucial to exist! Aborting execution."
   exit 1
 fi
+
+
+#GCC compiling settings
+#NOTE: This function must always exist!
+function gcc_related_options()
+{
+
+  if [ "x$USE_OF_GCC" == "xon" ]; then
+    if [ "$arch" == "x64" ]; then
+      while : ; do
+        GCCSETTINGSOPTS=$(dialog --stdout --separate-output \
+        --backtitle "$GUI_BACKTITLE"         \
+        --checklist "Choose Install settings: < Space to select ! >" 10 60 2 \
+        1 "Build GCC? (otherwise use pre-compiled version)" $BUILD_GCC \
+        2 "Build GCC in 64bit mode only?" $BUILD_GCC_STRICT_64BIT )
+
+        if [ x"$?" == x"0" ]; then
+          break;
+        else
+          cancel_installer
+        fi
+      done
+
+    elif [ "$arch" == "x86" ]; then
+      while : ; do
+        GCCSETTINGSOPTS=$(dialog --stdout --separate-output \
+        --backtitle "$GUI_BACKTITLE"         \
+        --checklist "Choose Install settings: < Space to select ! >" 10 60 1 \
+        1 "Build GCC? (otherwise use pre-compiled version)" $BUILD_GCC )
+
+        if [ x"$?" == x"0" ]; then
+          break;
+        else
+          cancel_installer
+        fi
+      done
+    fi
+
+    #Take care of unpack
+    BUILD_GCC=off
+    BUILD_GCC_STRICT_64BIT=off #this is optionable for x86_64 only
+    for setting in $GCCSETTINGSOPTS ; do
+      if [ $setting == 1 ] ; then BUILD_GCC=on ; fi
+      if [ $setting == 2 ] ; then BUILD_GCC_STRICT_64BIT=on ; fi
+    done
+  fi
+
+}
 
 
 #Check the sanity of the options

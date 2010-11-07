@@ -553,32 +553,6 @@ function check_installation()
   unset IFERRORSDETECTED
 }
 
-function fix_tutorials()
-{
-  #fix tutorials, if sh isn't linked to bash
-  if is_sh_bash; then
-    #set up environment, just in case we forget about it!
-    if [ "x$FOAM_TUTORIALS" == "x" ]; then
-      setOpenFOAMEnv
-    fi
-
-    cd $WM_PROJECT_DIR
-
-    echo "------------------------------------------------------"
-    echo "Fixing call for bash in tutorials (sometimes the default is dash, like in Ubuntu)"
-    #NOTE: searching for patterns requires quotes
-    find $FOAM_TUTORIALS/ -name "All*" -name "makeMesh" | \
-    while read file
-    do
-        mv "$file" "$file.old"
-        sed '/^#!/ s/\/bin\/sh/\/bin\/bash/' "$file.old" > "$file"
-        rm -f "$file.old"
-    done
-    echo "Fix up bash done"
-    echo "------------------------------------------------------"
-  fi
-}
-
 #final messages and instructions for when we do a clean install...
 #whether it goes well or not
 function final_messages_for_clean_install()

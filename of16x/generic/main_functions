@@ -43,6 +43,6 @@ function fix_gcc_if_necessary()
   #any more dependencies to the system's libraries!
   if [ "$arch" == "x64" -a "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
     #this function is defined in the of16x/generic/fixes script
-    link_gcc433_libraries_to_system
+    link_gcc_libraries_to_system
   fi
 }

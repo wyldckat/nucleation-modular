@@ -17,11 +17,11 @@ function apply_fixes_system()
 {
   if [ "x$USE_OF_GCC" == "xon" ]; then
     #this depends on the existing Ubuntu version
-    link_gcc433_libraries_to_system
+    link_gcc_libraries_to_system
   fi
 }
 
-function link_gcc433_libraries_to_system()
+function link_gcc_libraries_to_system()
 {
   #Define which folder to fix libraries
   if [ "$SYSTEM_VERSION" != "8.04" ]; then

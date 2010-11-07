@@ -29,7 +29,8 @@ function define_packages_to_download_system()
         CMAKEVERSION=`cmake --version | sed -e 's=.*\([0-9]\.[0-9]\)-patch\ =\1='`
       fi
       if isleftlarger_or_equal 2.7 $CMAKEVERSION || isleftlarger_or_equal $CMAKEVERSION 0.00; then
-        THIRDPARTY_BIN_CMAKE="ThirdParty-1.6.linuxGcc.gtgz"
+        #TODO: Still have to build a proper cmake version...
+        :
       fi
     fi
   fi
@@ -39,10 +40,6 @@ function define_packages_to_download_system()
 #NOTE: This function must always exist!
 function fix_gcc_if_necessary()
 {
-  #TODO: this won't be necessary if we build cmake too, since then there won't be
-  #any more dependencies to the system's libraries!
-  if [ "$arch" == "x64" -a "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
-    #this function is defined in the of16x/generic/fixes script
-    link_gcc433_libraries_to_system
-  fi
+  #Nothing to do here...
+  :
 }

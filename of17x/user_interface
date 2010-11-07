@@ -2,6 +2,7 @@
 
 #-- USER INTERFACE FUNCTIONS ------------------------------------------------------
 #list of functions herein:
+#   gcc_related_options()
 #   check_options_sanity()
 
 #global variables used by this script:
@@ -12,6 +13,8 @@
 #   GUI_BACKTITLE - The back title for the dialogs
 #   USE_REPO_PV         - option for using the system's ParaView - defined in common/user_interface
 #   USE_KITWARE_PV         - option for using the system's ParaView - defined in common/user_interface
+#   BUILD_GCC           - option for doing a custom build of gcc - defined gcc_related_options()
+#   BUILD_GCC_STRICT_64BIT - option for doing a custom build of gcc but only the 64bit version (no multilib) - defined gcc_related_options()
 #   BUILD_QT            - option for building Qt - defined in common/user_interface
 #   BUILD_PARAVIEW      - option for building ParaView - defined in common/user_interface
 #   BUILD_PARAVIEW_WITH_GUI - option for building ParaView with GUI - defined in common/user_interface
@@ -21,7 +24,7 @@
 
 
 #Code -----------------------------------------
-echo "Sourcing User Interface functions for OpenFOAM 1.6.x..."
+echo "Sourcing User Interface functions for OpenFOAM ${OF_LONG_VERSION}..."
 
 #source system related script
 if [ "x$INST_SYSTEM" != "x" -a "x${SCRIPT_WORKFOLDER}" != "x" ]; then
@@ -30,6 +33,47 @@ else
   echo "The variable INST_SYSTEM and/or SCRIPT_WORKFOLDER is/are empty and they are crucial to exist! Aborting execution."
   exit 1
 fi
+
+
+#GCC compiling settings
+#NOTE: This function must always exist!
+function gcc_related_options()
+{
+
+  if [ "x$USE_OF_GCC" == "xon" ]; then
+
+    while : ; do
+      GCCSETTINGSOPTS=$(dialog --stdout --separate-output \
+      --backtitle "$GUI_BACKTITLE"         \
+      --checklist "Choose Install settings: < Space to select ! >" 10 60 1 \
+      1 "Build GCC? (otherwise use pre-compiled version)" $BUILD_GCC \
+      2 "Build gcc series 4.4 (pick only one version)" off \
+      3 "Build gcc series 4.5 (pick only one version)" on )
+
+      if [ x"$?" == x"0" ]; then
+        break;
+      else
+        cancel_installer
+      fi
+    done
+
+    #Take care of unpack
+    BUILD_GCC=on #predefined
+    BUILD_GCC_STRICT_64BIT=off #Always off for OpenFOAM 1.7.x
+    GCC_VERSION=45
+    for setting in $GCCSETTINGSOPTS ; do
+      if [ $setting == 1 ] ; then BUILD_GCC=on ; fi
+      if [ $setting == 2 ] ; then GCC_VERSION=44 ; fi
+      if [ $setting == 3 ] ; then GCC_VERSION=45 ; fi
+    done
+
+  else
+
+    BUILD_GCC=off
+
+  fi
+
+}
 
 
 #Check the sanity of the options

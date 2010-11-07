@@ -37,34 +37,32 @@ function apply_patches()
   if [ "x$HOME/OpenFOAM" != "x$PATHOF" ]; then #fix OpenFOAM base path in bashrc
     patchBashrcPath
   fi
+
+  #reset preferences prefs.sh
+  resetPrefsSH
+
+  #add multi-core to prefs.sh
   patchBashrcMultiCore #for faster builds on multi-core machines
-  #proper fix for running in 32bit
+  #add proper fix for running in 32bit to prefs.sh
   if [ "$arch" == "x86" ]; then
     patchBashrcTo32
   fi
 
-  #Fix for using the system's compiler
+  #Define compiler mode to use in prefs.sh
   if [ "x$USE_OF_GCC" == "xoff" ]; then
     patchSettingsToSystemCompiler
-  fi #for using the system's compiler
+  else
+    patchSettingsToOpenFOAMCompiler
+  fi
 
-  #patch the bashrc file for using the system's OpenMPI
+  #Define that the system's OpenMPI should be used in prefs.sh
   if [ "x$USE_SYSTEM_OPENMPI" == "xon" ]; then
     patchBashrcToSystemOpenMPI
   fi
 
-  #apply patch for paraFoam, for when the running language
-  #isn't the standard english!
-  if ! issystem_english; then
-    patchParaFoamScript
-  fi
-
-  #apply patches for wmake script, MPFR library, makeQt script, makeParaView script and libccmio
+  #apply patches for wmake script, makeParaView script and libccmio
   patchWmakeForTimings
-  patchMPFRMissingFiles
-  patchMakeQtScript
   patchMakeParaViewScript
-  patchAllwmakeLibccmioScript
 
   if [ "x$USE_REPO_PV" == "xon" -o "x$USE_KITWARE_PV" == "xon" ]; then
     #First copy paraFoamSys to OpenFOAM's bin folder
@@ -88,237 +86,137 @@ tmpVar=$PWD
 cd_openfoam
 cd OpenFOAM-${OF_LONG_VERSION}/etc/
 
-echo '--- ../bashrc 2010-05-02 13:08:09.905803554 +0200
-+++ bashrc  2010-05-02 13:18:36.991912551 +0200
-@@ -43,7 +43,8 @@
+echo '--- bashrc.orig 2010-11-07 12:27:16.000000000 +0000
++++ bashrc  2010-11-07 12:30:33.000000000 +0000
+@@ -42,7 +42,7 @@
  #
- # Location of FOAM installation
- # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ # Location of the OpenFOAM installation
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -foamInstall=$HOME/$WM_PROJECT
-+foamInstall='$PATHOF'
-+# foamInstall=$HOME/$WM_PROJECT
++foamInstall='${PATHOF}'
  # foamInstall=~$WM_PROJECT
  # foamInstall=/usr/local/$WM_PROJECT
  # foamInstall=/opt/$WM_PROJECT
-@@ -68,7 +69,7 @@
+@@ -67,7 +67,7 @@
  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
  export WM_PROJECT_INST_DIR=$FOAM_INST_DIR
  export WM_PROJECT_DIR=$WM_PROJECT_INST_DIR/$WM_PROJECT-$WM_PROJECT_VERSION
 -export WM_PROJECT_USER_DIR=$HOME/$WM_PROJECT/$USER-$WM_PROJECT_VERSION
 +export WM_PROJECT_USER_DIR=$FOAM_INST_DIR/$USER-$WM_PROJECT_VERSION
 
-
- # Location of third-party software' | patch -p0
+ # Location of third-party software
+ # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+' | patch -p0
 
 cd $tmpVar
 unset tmpVar
+}
+
+function resetPrefsSH()
+{
+  tmpVar=$PWD
+  cd_openfoam
+  cd OpenFOAM-${OF_LONG_VERSION}/etc/
+
+  echo "#This file was generated automatically by one of the scripts available here:" > prefs.sh
+  echo "#$MAIN_PAGE_URL" >> prefs.sh
+  echo "#This way it's unnecessary to over-patch bashrc." >> prefs.sh
+
+  cd $tmpVar
+  unset tmpVar
 }
 
 #Patch to compile using multicore
 function patchBashrcMultiCore()
 {
-tmpVar=$PWD
-cd_openfoam
-cd OpenFOAM-${OF_LONG_VERSION}/etc/
+  tmpVar=$PWD
+  cd_openfoam
+  cd OpenFOAM-${OF_LONG_VERSION}/etc/
 
-echo '--- ../../bashrc  2009-11-21 00:00:47.502453988 +0000
-+++ bashrc  2009-11-21 00:01:20.814519578 +0000
-@@ -105,6 +105,20 @@
- : ${WM_MPLIB:=OPENMPI}; export WM_MPLIB
+  echo '' >> prefs.sh
+  echo '#' >> prefs.sh
+  echo '# Set the number of cores to build on' >> prefs.sh
+  echo '#' >> prefs.sh
+  echo 'WM_NCOMPPROCS=1' >> prefs.sh
+  echo '' >> prefs.sh
+  echo 'if [ -r /proc/cpuinfo ]' >> prefs.sh
+  echo 'then' >> prefs.sh
+  echo '    WM_NCOMPPROCS=$(egrep "^processor" /proc/cpuinfo | wc -l)' >> prefs.sh
+  echo '    [ $WM_NCOMPPROCS -le 8 ] || WM_NCOMPPROCS=8' >> prefs.sh
+  echo 'fi' >> prefs.sh
+  echo '' >> prefs.sh
+  echo 'echo "Building on " $WM_NCOMPPROCS " cores"' >> prefs.sh
+  echo 'export WM_NCOMPPROCS' >> prefs.sh
 
-
-+#
-+# Set the number of cores to build on
-+#
-+WM_NCOMPPROCS=1
-+
-+if [ -r /proc/cpuinfo ]
-+then
-+    WM_NCOMPPROCS=$(egrep "^processor" /proc/cpuinfo | wc -l)
-+    [ $WM_NCOMPPROCS -le 8 ] || WM_NCOMPPROCS=8
-+fi
-+
-+echo "Building on " $WM_NCOMPPROCS " cores"
-+export WM_NCOMPPROCS
-+
- # Run options (floating-point signal handling and memory initialisation)
- # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- export FOAM_SIGFPE=' | patch -p0
-
-cd $tmpVar
-unset tmpVar
+  cd $tmpVar
+  unset tmpVar
 }
 
 #Patch to work on 32-bit versions
 function patchBashrcTo32()
 {
-tmpVar=$PWD
-cd_openfoam
-cd OpenFOAM-${OF_LONG_VERSION}/etc/
+  tmpVar=$PWD
+  cd_openfoam
+  cd OpenFOAM-${OF_LONG_VERSION}/etc/
 
-echo '--- ../../bashrc  2009-11-21 00:00:47.502453988 +0000
-+++ bashrc  2009-11-21 00:01:20.814519578 +0000
-@@ -93,7 +93,7 @@
- # Compilation options (architecture, precision, optimised, debug or profiling)
- # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- # WM_ARCH_OPTION = 32 | 64
--: ${WM_ARCH_OPTION:=64}; export WM_ARCH_OPTION
-+: ${WM_ARCH_OPTION:=32}; export WM_ARCH_OPTION
+  echo '' >> prefs.sh
+  echo 'export WM_ARCH_OPTION=32' >> prefs.sh
 
- # WM_PRECISION_OPTION = DP | SP
- : ${WM_PRECISION_OPTION:=DP}; export WM_PRECISION_OPTION' | patch -p0
-
-cd $tmpVar
-unset tmpVar
+  cd $tmpVar
+  unset tmpVar
 }
 
 #patch the bashrc file for using the system's OpenMPI
 function patchBashrcToSystemOpenMPI()
 {
-tmpVar=$PWD
-cd_openfoam
-cd OpenFOAM-${OF_LONG_VERSION}/etc/
+  tmpVar=$PWD
+  cd_openfoam
+  cd OpenFOAM-${OF_LONG_VERSION}/etc/
 
-echo '--- bashrc.orig 2010-08-31 18:09:24.000000000 +0100
-+++ bashrc  2010-08-31 18:10:13.000000000 +0100
-@@ -102,7 +102,7 @@
- : ${WM_COMPILE_OPTION:=Opt}; export WM_COMPILE_OPTION
+  echo '' >> prefs.sh
+  echo 'export WM_MPLIB=SYSTEMOPENMPI' >> prefs.sh
 
- # WM_MPLIB = | OPENMPI | MPICH | MPICH-GM | HPMPI | GAMMA | MPI | QSMPI
--: ${WM_MPLIB:=OPENMPI}; export WM_MPLIB
-+: ${WM_MPLIB:=SYSTEMOPENMPI}; export WM_MPLIB
-
-
- # Run options (floating-point signal handling and memory initialisation)
-' | patch -p0
-
-cd $tmpVar
-unset tmpVar
+  cd $tmpVar
+  unset tmpVar
 }
 
 #Patch to use System compiler
 function patchSettingsToSystemCompiler()
 {
-tmpVar=$PWD
-cd_openfoam
-cd OpenFOAM-${OF_LONG_VERSION}/etc/
+  tmpVar=$PWD
+  cd_openfoam
+  cd OpenFOAM-${OF_LONG_VERSION}/etc/
 
-echo '--- ../../settings.sh 2009-11-21 00:01:29.851902621 +0000
-+++ settings.sh 2009-11-21 00:01:59.157391716 +0000
-@@ -95,7 +95,7 @@
- # Select compiler installation
- # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- # compilerInstall = OpenFOAM | System
--compilerInstall=OpenFOAM
-+compilerInstall=System
+  echo '' >> prefs.sh
+  echo 'compilerInstall=System' >> prefs.sh
 
- case "${compilerInstall:-OpenFOAM}" in
- OpenFOAM)
-@@ -129,6 +132,8 @@
-     compilerBin=$WM_COMPILER_DIR/bin
-     compilerLib=$WM_COMPILER_DIR/lib$WM_COMPILER_LIB_ARCH:$WM_COMPILER_DIR/lib
-     ;;
-+System)
-+    export WM_COMPILER_DIR=/usr
- esac
-
- if [ -d "$compilerBin" ]' | patch -p0
-
-cd $tmpVar
-unset tmpVar
+  cd $tmpVar
+  unset tmpVar
 }
 
-#Patch paraFoam script
-function patchParaFoamScript()
+#Patch to use OpenFOAM compiler
+function patchSettingsToOpenFOAMCompiler()
 {
-tmpVar=$PWD
-cd_openfoam
-cd OpenFOAM-${OF_LONG_VERSION}/bin/
+  tmpVar=$PWD
+  cd_openfoam
+  cd OpenFOAM-${OF_LONG_VERSION}/etc/
 
-echo '--- ../../paraFoam  2010-04-11 01:38:34.000000000 +0100
-+++ paraFoam  2010-04-11 01:38:18.000000000 +0100
-@@ -75,6 +75,8 @@
-     esac
- done
+  echo '' >> prefs.sh
+  echo 'compilerInstall=OpenFOAM' >> prefs.sh
 
-+export LC_ALL=C
-+
- # get a sensible caseName
- caseName=${PWD##*/}
- caseFile="$caseName.OpenFOAM"
-' | patch -p0
-
-cd $tmpVar
-unset tmpVar
-}
-
-
-#Patch AllwmakeLibccmio script
-#Code source for patch: http://www.cfd-online.com/Forums/openfoam-bugs/62300-of15-libccmio-thus-ccm26tofoam-do-not-compile-2.html
-function patchAllwmakeLibccmioScript()
-{
-tmpVar=$PWD
-cd_openfoam
-cd ThirdParty-${OF_LONG_VERSION}/
-
-echo '--- ../AllwmakeLibccmio  2009-07-24 13:51:14.000000000 +0100
-+++ AllwmakeLibccmio 2009-10-17 11:29:36.000000000 +0100
-@@ -33,6 +33,7 @@
- set -x
-
- packageDir=libccmio-2.6.1
-+origDir=$PWD
-
- if [ ! -d ${packageDir} ]
- then
-@@ -52,7 +53,17 @@
-
- if [ -d ${packageDir} -a ! -d ${packageDir}/Make ]
- then
--   cp -r wmakeFiles/libccmio/Make ${packageDir}/Make
-+  if [ ! -d "wmakeFiles/libccmio/Make" ]; then
-+    mkdir -p ${packageDir}/Make
-+    cd ${packageDir}/Make
-+    wget http://www.cfd-online.com/OpenFOAM_Discus/messages/126/files-8822.unk
-+    wget http://www.cfd-online.com/OpenFOAM_Discus/messages/126/options-8823.unk
-+    mv -i files-8822.unk files
-+    mv -i options-8823.unk options
-+    cd $origDir
-+  else
-+    cp -r wmakeFiles/libccmio/Make ${packageDir}/Make
-+  fi
- fi
-
- if [ -d ${packageDir}/Make ]' | patch -p0
-cd $tmpVar
-unset tmpVar
-}
-
-#Patch the missing files in MPFR that comes with the ThirdParty.General package
-function patchMPFRMissingFiles()
-{
-tmpVar=$PWD
-cd_openfoam
-cd ThirdParty-${OF_LONG_VERSION}/
-
-if [ -e "${MPFRPATCHFILE[1]}" ]; then
-  patch -p1 < ${MPFRPATCHFILE[1]}
-fi
-
-cd $tmpVar
-unset tmpVar
+  cd $tmpVar
+  unset tmpVar
 }
 
 #patch makeParaView script to allow -noqt option
 function patchMakeParaViewScript()
 {
 tmpVar=$PWD
-cd_openfoam
-cd ThirdParty-${OF_LONG_VERSION}/
+cd_thirdparty
 
-echo '--- ../makeParaView  2010-04-18 21:49:00.611392700 +0100
-+++ ./makeParaView  2010-04-18 21:50:31.609831213 +0100
-@@ -45,13 +45,13 @@
+echo '--- makeParaView.orig 2010-06-24 11:49:40.000000000 +0100
++++ makeParaView  2010-11-07 13:42:43.000000000 +0000
+@@ -53,13 +53,13 @@
  # note: script will try to determine the appropriate python library.
  #       If it fails, specify the path using the PYTHON_LIBRARY variable
  withPYTHON=false
@@ -332,47 +230,20 @@ echo '--- ../makeParaView  2010-04-18 21:49:00.611392700 +0100
 -MESA_LIBRARY="/usr/lib64/libOSMesa.so"
 +MESA_LIBRARY="/usr/lib/libOSMesa.so"
 
- # extra QT gui support (useful for re-using the installation for engrid)
- withQTSUPPORT=true
-@@ -75,6 +75,7 @@
-   -python       with python (if not already enabled)
-   -mesa         with mesa (if not already enabled)
-   -qt           with extra Qt gui support (if not already enabled)
-+  -noqt         without extra Qt gui support (if not already disabled)
-   -verbose      verbose output in Makefiles
-   -version VER  specify an alternative version (default: $ParaView_VERSION)
-   -help
-@@ -104,6 +105,7 @@
- case "$Script" in *-python*) withPYTHON=true;; esac
- case "$Script" in *-mesa*)   withMESA=true;; esac
- case "$Script" in *-qt*)     withQTSUPPORT=true;; esac
-+case "$Script" in *-noqt*)     withQTSUPPORT=false;; esac
-
- #
- # various building stages
-@@ -181,6 +183,10 @@
-         withQTSUPPORT=true
-         shift
-         ;;
-+    -noqt)
-+        withQTSUPPORT=false
-+        shift
-+        ;;
-     -qmake)
-         [ "$#" -ge 2 ] || usage "'$1' option requires an argument"
-         export QMAKE_PATH=$2
---- ../makeParaViewFunctions     2009-07-24 13:51:14.000000000 +0100
-+++ ./tools/makeParaViewFunctions       2010-05-15 18:39:33.000000000 +0100
-@@ -167,7 +167,7 @@
+ # extra QT gui support (useful for some third party apps)
+ withQT=true
+--- makeParaViewFunctions.orig  2010-04-26 11:26:16.000000000 +0100
++++ makeParaViewFunctions 2010-11-07 13:45:45.000000000 +0000
+@@ -267,7 +267,7 @@
 
  addQtSupport()
  {
--    [ "${withQTSUPPORT:=false}" = true ] || return
-+  if [ "${withQTSUPPORT:=false}" = true ]; then
+-    [ "${withQT:=false}" = true ] || return
++  if [ "${withQT:=false}" = true ]; then
 
      addCMakeVariable "PARAVIEW_BUILD_QT_GUI=ON"
 
-@@ -209,6 +209,11 @@
+@@ -309,6 +309,11 @@
          echo "*** Error: cannot find qmake either at \$QMAKE_PATH or in current \$PATH"
          exit 1
      fi
@@ -383,30 +254,8 @@ echo '--- ../makeParaView  2010-04-18 21:49:00.611392700 +0100
 +  fi
  }
 
+
 ' | patch -p0
-cd $tmpVar
-unset tmpVar
-}
-
-#patch makeQt script to allow one more option for building Qt
-function patchMakeQtScript()
-{
-tmpVar=$PWD
-cd_openfoam
-cd ThirdParty-${OF_LONG_VERSION}/
-
-echo '--- ../makeQt 2010-04-26 23:10:03.000000000 +0100
-+++ makeQt  2010-04-26 23:11:10.000000000 +0100
-@@ -45,7 +45,7 @@
-     ./configure \
-         --prefix=${QT_ARCH_PATH} \
-         -nomake demos \
--        -nomake examples
-+        -nomake examples $1
-
-     if [ -r /proc/cpuinfo ]
-     then' | patch -p0
-
 cd $tmpVar
 unset tmpVar
 }
@@ -414,14 +263,14 @@ unset tmpVar
 #Patch wmake to provide timings upon request via WM_DO_TIMINGS
 function patchWmakeForTimings()
 {
-tmpVar=$PWD
-cd_openfoam
-cd OpenFOAM-${OF_LONG_VERSION}/wmake/
+  tmpVar=$PWD
+  cd_openfoam
+  cd OpenFOAM-${OF_LONG_VERSION}/wmake/
 
-patch -p0 < "${WMAKEPATCHFILE[1]}"
+  patch -p0 < "${WMAKEPATCHFILE[1]}"
 
-cd $tmpVar
-unset tmpVar
+  cd $tmpVar
+  unset tmpVar
 }
 
 #Patch paraFoamSys
@@ -439,7 +288,7 @@ echo '--- orig/'${PFOAM_PATCHFILE[0]}'  2010-08-28 11:35:05.000000000 +0100
  #------------------------------------------------------------------------------
  Script=${0##*/}
 
-+export PATH='$PATHOF'/ThirdParty-1.6/'$KV_PV_DIR'/bin:$PATH
++export PATH='$PATHOF'/ThirdParty-1.7.1/'$KV_PV_DIR'/bin:$PATH
 +
  usage() {
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done

@@ -21,7 +21,7 @@
 
 
 #Code -----------------------------------------
-echo "Sourcing User Interface functions for OpenFOAM 1.6.x and Ubuntu..."
+echo "Sourcing User Interface functions for OpenFOAM ${OF_LONG_VERSION} and Ubuntu..."
 
 #NOTE: This function must always exist!
 function check_options_sanity_for_system()

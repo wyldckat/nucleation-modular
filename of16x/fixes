@@ -26,6 +26,9 @@ fi
 #NOTE: This function must always exist!
 function apply_fixes()
 {
+  #fix the tutorials
+  fix_tutorials
+
   cd_openfoam #this is a precautionary measure
 
   #fix links to proper libraries for gcc, as long as the OpenFOAM's precompiled version is used
@@ -41,8 +44,9 @@ function apply_fixes()
     elif [ "$arch" == "x64" ]; then
       cd ThirdParty-1.6/paraview-3.6.1/platforms/linux64Gcc/bin
     fi
-    mv pqClientDocFinder.txt pqClientDocFinder_orig.txt
-    cat pqClientDocFinder_orig.txt | sed -e 's=/home/dm2/henry/OpenFOAM='${PATHOF}'=' > ./pqClientDocFinder.txt
+    if [ ! -e pqClientDocFinder_orig.txt ]; then cp pqClientDocFinder.txt pqClientDocFinder_orig.txt; fi
+    if [ -e pqClientDocFinder_orig.txt ]; then cp pqClientDocFinder_orig.txt pqClientDocFinder.txt; fi
+    sed -i -e 's=/home/dm2/henry/OpenFOAM='${PATHOF}'=' pqClientDocFinder.txt
   fi
 
   #apply fixes associated with the system

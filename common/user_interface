@@ -11,7 +11,6 @@
 #   define_base_custom_options()
 #   define_custom_optionals()
 #   define_paraview_options()
-#   gcc_related_options()
 #   pick_download_mirror()
 #   final_interface_before_install()
 
@@ -42,8 +41,6 @@
 #   BUILD_PARAVIEW_WITH_PYTHON - option for building ParaView with Python - defined in define_paraview_options()
 #   BUILD_PARAVIEW_WITH_OSMESA - option for building ParaView with OSMesa - defined in define_paraview_options()
 #   USE_OF_GCC          - option for building or not gcc - defined in common/user_interface
-#   BUILD_GCC           - option for doing a custom build of gcc - defined gcc_related_options()
-#   BUILD_GCC_STRICT_64BIT - option for doing a custom build of gcc but only the 64bit version (no multilib) - defined gcc_related_options()
 #   mirror              - option for what mirror to use on sourceforge - defined in pick_download_mirror()
 
 #Code -----------------------------------------
@@ -294,52 +291,6 @@ function define_paraview_options()
   fi
 }
 
-#GCC compiling settings
-function gcc_related_options()
-{
-
-  if [ "x$USE_OF_GCC" == "xon" ]; then
-    if [ "$arch" == "x64" ]; then
-      while : ; do
-        GCCSETTINGSOPTS=$(dialog --stdout --separate-output \
-        --backtitle "$GUI_BACKTITLE"         \
-        --checklist "Choose Install settings: < Space to select ! >" 10 60 2 \
-        1 "Build GCC? (otherwise use pre-compiled version)" $BUILD_GCC \
-        2 "Build GCC in 64bit mode only?" $BUILD_GCC_STRICT_64BIT )
-
-        if [ x"$?" == x"0" ]; then
-          break;
-        else
-          cancel_installer
-        fi
-      done
-
-    elif [ "$arch" == "x86" ]; then
-      while : ; do
-        GCCSETTINGSOPTS=$(dialog --stdout --separate-output \
-        --backtitle "$GUI_BACKTITLE"         \
-        --checklist "Choose Install settings: < Space to select ! >" 10 60 1 \
-        1 "Build GCC? (otherwise use pre-compiled version)" $BUILD_GCC )
-
-        if [ x"$?" == x"0" ]; then
-          break;
-        else
-          cancel_installer
-        fi
-      done
-    fi
-
-    #Take care of unpack
-    BUILD_GCC=off
-    BUILD_GCC_STRICT_64BIT=off #this is optionable for x86_64 only
-    for setting in $GCCSETTINGSOPTS ; do
-      if [ $setting == 1 ] ; then BUILD_GCC=on ; fi
-      if [ $setting == 2 ] ; then BUILD_GCC_STRICT_64BIT=on ; fi
-    done
-  fi
-
-}
-
 #Mirror selection dialog
 function pick_download_mirror()
 {
@@ -430,7 +381,7 @@ function final_interface_before_install()
 |   \\  /      Install mode: $INSTALLMODE\n
 |    \\/       Build documentation ? $BUILD_DOCUMENTATION\n
 | *installOF* Use startFoam alias ? $USE_ALIAS_FOR_BASHRC\n
-| *settings*  Use OpenFOAM gcc ? $USE_OF_GCC\n
+| *settings*  Use custom gcc ? $USE_OF_GCC\n
 |             Build ParaView ? $BUILD_PARAVIEW\n
 -------------------------------------------------------------------------\n
 !For more info see documentation on $MAIN_PAGE_URL" 15 80)
