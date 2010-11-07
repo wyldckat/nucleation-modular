@@ -322,9 +322,7 @@ function fix_tutorials()
     find . -name "All*" -name "makeMesh" | \
     while read file
     do
-        mv "$file" "$file.old"
-        sed '/^#!/ s/\/bin\/sh/\/bin\/bash/' "$file.old" > "$file"
-        rm -f "$file.old"
+        sed -i -e '/^#!/ s/\/bin\/sh/\/bin\/bash/' "$file"
     done
     echo "Fix up bash done"
     echo "------------------------------------------------------"
