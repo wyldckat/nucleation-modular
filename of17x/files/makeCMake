@@ -1,0 +1,68 @@
+#---------------------------------*- sh -*-------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | Copyright (C) 1991-2009 OpenCFD Ltd.
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+# License
+#     This file is based on makeQt that came with OpenFOAM 1.6.
+#
+#     OpenFOAM is free software; you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by the
+#     Free Software Foundation; either version 2 of the License, or (at your
+#     option) any later version.
+#
+#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with OpenFOAM; if not, write to the Free Software Foundation,
+#     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+#
+#
+# Script
+#     makeCMake
+#
+# Description
+#     Build script for CMake-2.8.1.
+#
+#------------------------------------------------------------------------------
+
+CMAKE_VERSION=2.8.1
+CMAKE_HOME=${WM_THIRD_PARTY_DIR}/cmake-${CMAKE_VERSION}
+CMAKE_ARCH_PATH=${WM_THIRD_PARTY_DIR}/platforms/$WM_ARCH$WM_COMPILER_ARCH/cmake-${CMAKE_VERSION}
+
+if [ ! -d $CMAKE_ARCH_PATH ]
+then
+    cd ${CMAKE_HOME}
+
+    make distclean
+
+    rm -rf ${CMAKE_ARCH_PATH}
+
+    if [ -r /proc/cpuinfo ]
+    then
+        WM_NCOMPPROCS=$(egrep "^processor" /proc/cpuinfo | wc -l)
+        [ $WM_NCOMPPROCS -le 8 ] || WM_NCOMPPROCS=8
+
+        echo "Building on " $WM_NCOMPPROCS " cores"
+
+        ./bootstrap --prefix=${CMAKE_ARCH_PATH} --parallel=$WM_NCOMPPROCS
+
+        time make -j $WM_NCOMPPROCS
+    else
+        ./bootstrap --prefix=${CMAKE_ARCH_PATH}
+        time make
+    fi
+
+    make install
+
+    echo "    Finished building CMake-$CMAKE_VERSION."
+else
+    echo "    CMake-$CMAKE_VERSION already built."
+fi
+
+# ----------------------------------------------------------------- end-of-file

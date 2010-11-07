@@ -56,6 +56,12 @@ function define_packages_to_download()
     QT_PACKAGEFILE="qt-everywhere-opensource-src-$QT_VERSION.tar.gz"
   fi
 
+  if [ "x$BUILD_CMAKE" == "xon" ]; then
+    CMAKE_VERSION=2.8.1
+    CMAKE_BASEURL="http://www.cmake.org/files/v2.8/"
+    CMAKE_PACKAGEFILE="cmake-$CMAKE_VERSION.tar.gz"
+  fi
+
   if [ "x$BUILD_CCM26TOFOAM" == "xon" ]; then
     CCMIO_PACKAGE_VERSION=libccmio-2.6.1
     CCMIO_PACKAGE="${CCMIO_PACKAGE_VERSION}.tar.gz"
@@ -100,6 +106,10 @@ function define_script_s_files_ofv()
   #define file for building Qt
   MAKEQTFILE[0]="makeQt"
   MAKEQTFILE[1]="${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/files/${MAKEQTFILE[0]}"
+
+  #define file for building CMake
+  MAKECMAKEFILE[0]="makeCMake"
+  MAKECMAKEFILE[1]="${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/files/${MAKECMAKEFILE[0]}"
 }
 
 
@@ -118,6 +128,10 @@ function download_files()
 
   if [ "x$BUILD_QT" == "xon" ]; then
     do_wget "$QT_BASEURL" "$QT_PACKAGEFILE"
+  fi
+
+  if [ "x$BUILD_CMAKE" == "xon" ]; then
+    do_wget "$CMAKE_BASEURL" "$CMAKE_PACKAGEFILE"
   fi
 
   if [ "x$BUILD_CCM26TOFOAM" == "xon" ]; then
@@ -167,6 +181,16 @@ function unpack_downloaded_files()
     chmod +x ${MAKEQTFILE[0]}
   fi
 
+  if [ "x$BUILD_CMAKE" == "xon" ]; then
+    cd_thirdparty
+    echo "Untaring $CMAKE_PACKAGEFILE"
+    unTar z $BASE_DOWNLOADS_FOLDER/$CMAKE_PACKAGEFILE
+
+    #copy makeCMake script
+    cp ${MAKECMAKEFILE[1]} .
+    chmod +x ${MAKECMAKEFILE[0]}
+  fi
+
   if [ "x$BUILD_CCM26TOFOAM" == "xon" ]; then
     cd_thirdparty
     ln -s $PATHOF/ThirdParty-${OF_LONG_VERSION}/$CCMIO_PACKAGE download/$CCMIO_PACKAGE
@@ -194,13 +218,15 @@ function process_online_log_of_timings()
 {
   #TODO: this value is hard coded for now, since it should come from the output of our timings script
   #The total count of "make[.]" found in our build_Qt.log
+  # FIXME: this hard coded value needs updating...
   BUILD_QT_LAST_BUILD_COUNT=293
 
   #TODO: this value is hard coded for now, since it should come from the output of our timings script
   #The total count of "make[.]" found in our build_gcc.log
+  # FIXME: this hard coded value needs updating...
   BUILD_GCC_LAST_BUILD_COUNT=556
 
-  #NOTES:
+  # NOTE:
   #  - ParaView has its own percentage, so we just lift from it
   #  - OpenFOAM uses wmake, making it relatively easier to estimate automatically,
   #    thus automatically adapting to new additions in the git repository
@@ -227,4 +253,11 @@ function fix_gcc_if_necessary()
 function set_QT_PLATFORM_PATH()
 {
   QT_PLATFORM_PATH="${WM_THIRD_PARTY_DIR}/platforms/$WM_ARCH$WM_COMPILER_ARCH/qt-everywhere-opensource-src-${QT_VERSION}"
+}
+
+#set the CMake root path for OpenFOAM 1.7.x
+#NOTE: This function must always exist!
+function set_CMAKE_PATH()
+{
+  CMAKE_PATH="${WM_THIRD_PARTY_DIR}/platforms/$WM_ARCH$WM_COMPILER/cmake-${CMAKE_VERSION}"
 }

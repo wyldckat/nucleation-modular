@@ -258,13 +258,14 @@ function define_paraview_options()
     while : ; do
       PVSETTINGSOPTS=$(dialog --stdout --separate-output \
       --backtitle "$GUI_BACKTITLE"         \
-      --checklist "Choose ParaView settings: < Space to select ! >" 16 59 6 \
+      --checklist "Choose ParaView settings: < Space to select ! >" 16 59 7 \
       1 "Do custom build of Qt ?" $BUILD_QT \
-      2 "Do custom build of ParaView ?" $BUILD_PARAVIEW \
-      3 "Build ParaView with GUI ?" $BUILD_PARAVIEW_WITH_GUI \
-      4 "Build ParaView with Python support ?" $BUILD_PARAVIEW_WITH_PYTHON \
-      5 "Build ParaView with MPI support ?" $BUILD_PARAVIEW_WITH_MPI \
-      6 "Build ParaView with OSMesa (without GUI) ?" $BUILD_PARAVIEW_WITH_OSMESA )
+      2 "Do custom build of CMake ?" $BUILD_CMAKE \
+      3 "Do custom build of ParaView ?" $BUILD_PARAVIEW \
+      4 "Build ParaView with GUI ?" $BUILD_PARAVIEW_WITH_GUI \
+      5 "Build ParaView with Python support ?" $BUILD_PARAVIEW_WITH_PYTHON \
+      6 "Build ParaView with MPI support ?" $BUILD_PARAVIEW_WITH_MPI \
+      7 "Build ParaView with OSMesa (without GUI) ?" $BUILD_PARAVIEW_WITH_OSMESA )
 
       if [ x"$?" == x"0" ]; then
         break;
@@ -275,6 +276,7 @@ function define_paraview_options()
 
     #Take care of unpack settings from PVSETTINGSOPTS
     BUILD_QT=off
+    BUILD_CMAKE=off
     BUILD_PARAVIEW=off
     BUILD_PARAVIEW_WITH_GUI=off
     BUILD_PARAVIEW_WITH_PYTHON=off
@@ -282,11 +284,12 @@ function define_paraview_options()
     BUILD_PARAVIEW_WITH_OSMESA=off
     for setting in $PVSETTINGSOPTS ; do
       if [ $setting == 1 ] ; then BUILD_QT=on ; fi
-      if [ $setting == 2 ] ; then BUILD_PARAVIEW=on ; fi
-      if [ $setting == 3 ] ; then BUILD_PARAVIEW_WITH_GUI=on ; fi
-      if [ $setting == 4 ] ; then BUILD_PARAVIEW_WITH_PYTHON=on ; fi
-      if [ $setting == 5 ] ; then BUILD_PARAVIEW_WITH_MPI=on ; fi
-      if [ $setting == 6 ] ; then BUILD_PARAVIEW_WITH_OSMESA=on ; fi
+      if [ $setting == 2 ] ; then BUILD_CMAKE=on ; fi
+      if [ $setting == 3 ] ; then BUILD_PARAVIEW=on ; fi
+      if [ $setting == 4 ] ; then BUILD_PARAVIEW_WITH_GUI=on ; fi
+      if [ $setting == 5 ] ; then BUILD_PARAVIEW_WITH_PYTHON=on ; fi
+      if [ $setting == 6 ] ; then BUILD_PARAVIEW_WITH_MPI=on ; fi
+      if [ $setting == 7 ] ; then BUILD_PARAVIEW_WITH_OSMESA=on ; fi
     done
   fi
 }

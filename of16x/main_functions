@@ -61,6 +61,12 @@ function define_packages_to_download()
     QT_PACKAGEFILE="qt-x11-opensource-src-$QT_VERSION.tar.bz2"
   fi
 
+  if [ "x$BUILD_CMAKE" == "xon" ]; then
+    CMAKE_VERSION=2.6.4
+    CMAKE_BASEURL="http://www.cmake.org/files/v2.6/"
+    CMAKE_PACKAGEFILE="cmake-$CMAKE_VERSION.tar.gz"
+  fi
+
   if [ "x$BUILD_CCM26TOFOAM" == "xon" ]; then
     CCMIO_PACKAGE_VERSION=libccmio-2.6.1
     CCMIO_PACKAGE="${CCMIO_PACKAGE_VERSION}.tar.gz"
@@ -96,6 +102,10 @@ function define_script_s_files_ofv()
   OPENFOAMMD5SUMSFILE[0]="OFpackages.md5"
   OPENFOAMMD5SUMSFILE[1]="${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/files/${OPENFOAMMD5SUMSFILE[0]}"
 
+  #define file for building CMake
+  MAKECMAKEFILE[0]="makeCMake"
+  MAKECMAKEFILE[1]="${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/files/${MAKECMAKEFILE[0]}"
+
   #files for building libccmio
   CCMIO_MAKEFILES_FILES[0]="files.AllwmakeLibccmio"
   CCMIO_MAKEFILES_FILES[1]="${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/files/${CCMIO_MAKEFILES_FILES[0]}"
@@ -129,6 +139,10 @@ function download_files()
 
   if [ "x$BUILD_QT" == "xon" ]; then
     do_wget "$QT_BASEURL" "$QT_PACKAGEFILE"
+  fi
+
+  if [ "x$BUILD_CMAKE" == "xon" ]; then
+    do_wget "$CMAKE_BASEURL" "$CMAKE_PACKAGEFILE"
   fi
 
   if [ "x$BUILD_CCM26TOFOAM" == "xon" ]; then
@@ -193,6 +207,16 @@ function unpack_downloaded_files()
     unTar j $BASE_DOWNLOADS_FOLDER/$QT_PACKAGEFILE
   fi
 
+  if [ "x$BUILD_CMAKE" == "xon" ]; then
+    cd_thirdparty
+    echo "Untaring $CMAKE_PACKAGEFILE"
+    unTar z $BASE_DOWNLOADS_FOLDER/$CMAKE_PACKAGEFILE
+
+    #copy makeCMake script
+    cp ${MAKECMAKEFILE[1]} .
+    chmod +x ${MAKECMAKEFILE[0]}
+  fi
+
   if [ "x$BUILD_CCM26TOFOAM" == "xon" ]; then
     cd_thirdparty
     ln -s ../$CCMIO_PACKAGE $CCMIO_PACKAGE
@@ -253,4 +277,11 @@ function fix_gcc_if_necessary()
 function set_QT_PLATFORM_PATH()
 {
   QT_PLATFORM_PATH="${WM_THIRD_PARTY_DIR}/qt-x11-opensource-src-${QT_VERSION}/platforms/${WM_OPTIONS}"
+}
+
+#set the CMake root path for OpenFOAM 1.6.x
+#NOTE: This function must always exist!
+function set_CMAKE_PATH()
+{
+  CMAKE_PATH="${WM_THIRD_PARTY_DIR}/cmake-${CMAKE_VERSION}/platforms/${WM_ARCH}"
 }

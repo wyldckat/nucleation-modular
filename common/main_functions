@@ -57,6 +57,7 @@ function define_default_user_options()
   USE_KITWARE_PV=off          #on | off
 
   BUILD_QT=off                   #on | off
+  BUILD_CMAKE=off                #on | off
   BUILD_PARAVIEW=off             #on | off
   BUILD_PARAVIEW_WITH_GUI=on     #on | off
   BUILD_PARAVIEW_WITH_PYTHON=off #on | off
@@ -779,6 +780,128 @@ function build_Qt()
 
   fi
 }
+
+
+#provide the user with a progress bar and timings for building CMake
+function build_CMake_progress_dialog()
+{
+  if [ "x$BUILD_CMAKE_MUST_KILL" == "xYes" ]; then
+    echo -e "\n\nKill code issued... please wait..."
+    echo -e "NOTE: The kill code will take a few seconds to affect all child processes."
+    killgroup $BUILD_CMAKE_PID
+
+  else
+
+    ( #while true is used as a containment cycle...
+    while : ;
+    do
+      if [ -e "$CMAKE_BUILD_LOG" ]; then
+        BUILD_CMAKE_PROGRESS=`cat "$CMAKE_BUILD_LOG" | grep "^\[" | tail -n 1 | sed 's/^\[\([ 0-9]*\).*/\1/' | sed 's/\ *//'`
+      fi
+      if [ "x$BUILD_CMAKE_PROGRESS" != "x" -a "x$BUILD_CMAKE_PROGRESS" != "x$percent" ]; then
+        percent=$BUILD_CMAKE_PROGRESS
+        BUILD_CMAKE_UPDATE_TIME=`date`
+      fi
+      echo $percent
+      echo "XXX"
+      echo "Build CMake ${CMAKE_VERSION}:"
+      echo "The build process is going to be logged in the file:"
+      echo "  $BUILD_CMAKE_LOG"
+      echo "If you want to, you can follow the progress of this build"
+      echo "process by opening a new terminal and running:"
+      echo "  tail -F $BUILD_CMAKE_LOG"
+      echo "Either way, please wait, this will take a while..."
+      echo -e "\nCMake started to build at:\n\t$BUILD_CMAKE_START_TIME\n"
+      echo -e "Last progress update made at:\n\t$BUILD_CMAKE_UPDATE_TIME"
+      echo "XXX"
+
+      #this provides a better monitorization of the process itself... i.e., if it has already stopped!
+      #30 second update
+      monitor_sleep $BUILD_CMAKE_PID 30
+
+      if ! ps -p $BUILD_CMAKE_PID > /dev/null; then
+        break;
+      fi
+    done
+    ) | dialog --backtitle "$GUI_BACKTITLE" \
+        --title "Building CMake" --gauge "Starting..." 20 80 $percent >&4
+
+  fi
+
+  #monitor here too, to wait for kill code, when issued
+  monitor_sleep $BUILD_CMAKE_PID 30
+}
+
+
+#this indicates to the user that we have it under control...
+function build_CMake_ctrl_c_triggered()
+{
+  BUILD_CMAKE_MUST_KILL="Yes"
+  build_CMake_progress_dialog
+}
+
+
+function build_CMake()
+{
+  if [ "x$BUILD_CMAKE" == "xon" ]; then
+    #set up environment, just in case we forget about it!
+    if [ "x$WM_PROJECT_DIR" == "x" ]; then
+      setOpenFOAMEnv
+    fi
+
+    cd $WM_THIRD_PARTY_DIR
+
+    #set the CMAKE_PATH variable, since it depends on the OpenFOAM version
+    set_CMAKE_PATH
+
+    #purge existing Qt
+    if [ -e "$CMAKE_PATH" ]; then
+      rm -rf $CMAKE_PATH
+    fi
+
+    CMAKE_PATH_LOG="${BASE_OFVER_LOG_FOLDER}/build_CMake.log"
+
+    #set up traps...
+    trap build_CMake_ctrl_c_triggered SIGINT SIGQUIT SIGTERM
+
+    echo "------------------------------------------------------"
+    echo "Build CMake:"
+
+    #launch makeQt asynchronously
+    bash -c "time ./makeCMake" > "$BUILD_CMAKE_LOG" 2>&1 &
+    BUILD_CMAKE_PID=$!
+    BUILD_CMAKE_START_TIME=`date`
+    BUILD_CMAKE_UPDATE_TIME=$BUILD_CMAKE_START_TIME
+
+    #track build progress
+    percent=0
+    build_CMake_progress_dialog
+
+    #wait for kill code to change
+    clear
+    if ! ps -p $BUILD_CMAKE_PID > /dev/null && [ "x$BUILD_CMAKE_MUST_KILL" != "x" ]; then
+      echo "Kill code issued with success. The script will continue execution."
+    fi
+
+    #clear traps
+    trap - SIGINT SIGQUIT SIGTERM
+
+    echo "------------------------------------------------------"
+    echo "Build CMake ${CMAKE_VERSION}:"
+    if [ -e "$CMAKE_PATH/bin/cmake" ]; then
+      echo -e "CMake started to build at:\n\t$BUILD_CMAKE_START_TIME\n"
+      echo -e "Building CMake finished successfully at:\n\t`date`"
+      echo "CMake is ready to use for building ParaView."
+    else
+      echo "Build process didn't finished with success. A report with be created at the end of this installation script."
+      FOAMINSTALLFAILED="Yes"
+      BUILDING_CMAKE_FAILED="Yes"
+    fi
+    echo "------------------------------------------------------"
+
+  fi
+}
+
 
 #provide the user with a progress bar and timings for building ParaView
 function build_ParaView_progress_dialog()

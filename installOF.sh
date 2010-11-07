@@ -287,6 +287,9 @@ if [ "x$INSTALLMODE" != "xupdate" ]; then
       #build Qt
       build_Qt
 
+      #build CMake
+      build_CMake
+
       #build ParaView
       build_ParaView
 
