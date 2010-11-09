@@ -1,0 +1,193 @@
+#!/bin/bash
+
+#-- MAIN FUNCTIONS ------------------------------------------------------
+#list of functions herein:
+#   ask_for_sudo_policy()
+#   install_dialog_package()
+#   define_script_s_files_system()
+
+#global variables used by this script:
+#   SHOW_SUDO_COMMANDS_ONLY - option for showing or direct usage of install commands - defined in ask_for_sudo_policy()
+#   SYSTEM_VERSION - must be defined before sourcing this script. It holds the version for the system
+#                    script of the same name as this one.
+#   arch - the architecture for the build - defined in the master script
+#   PACKAGES_TO_INSTALL - list (not an array) of packages that need to be installed - defined in install_dialog_package()
+#   BUILD_QT            - option for building Qt - defined in common/user_interface
+#   BUILD_PARAVIEW      - option for building ParaView - defined in common/user_interface
+#   BUILD_PARAVIEW_WITH_GUI - option for building ParaView with GUI - defined in common/user_interface
+#   BUILD_PARAVIEW_WITH_MPI - option for building ParaView with MPI - defined in common/user_interface
+#   BUILD_PARAVIEW_WITH_PYTHON - option for building ParaView with Python - defined in common/user_interface
+#   BUILD_PARAVIEW_WITH_OSMESA - option for building ParaView with OSMesa - defined in common/user_interface
+#   BUILD_DOCUMENTATION - option for building OpenFOAM's code documentation - defined in common/user_interface
+#   BUILD_GCC           - option for doing a custom build of gcc - defined in common/user_interface
+#   BUILD_GCC_STRICT_64BIT - option for doing a custom build of gcc but only the 64bit version (no multilib) - defined in common/user_interface
+#   USE_REPO_PV         - option for using the system's ParaView - defined in common/user_interface
+#   USE_KITWARE_PV         - option for using the system's ParaView - defined in common/user_interface
+
+
+#Code -----------------------------------------
+echo "Sourcing Main functions for SuSE ..."
+
+#FUNCTIONS ------------------------------------------------------------------------------
+
+#setup sudo policy for this script
+#REASON: not always does the user have superuser powers, or maybe the user doesn't fully trust us.
+#Either way, using sudo whithin the script could be a security hazard waiting to happen :(
+#NOTE: This function must always exist!
+function ask_for_sudo_policy()
+{
+  echo '-----------------------------------------------------------'
+  echo '      Welcome to the OpenFOAM Installer for Ubuntu  '
+  echo ' '
+  echo '  Before starting this script, it is necessary to define'
+  echo 'what policy should be used by this script, when installing'
+  echo 'new packages in Ubuntu. More specifically, superuser access'
+  echo 'will be required for installing packages, by calling the '
+  echo 'command "sudo".'
+  echo '  If you have superuser permissions and trust this script '
+  echo 'to use the sudo command, then type yes then hit return. '
+  echo -e 'Otherwise, type no:'
+  echo "(yes or no): "
+  read casestat;
+  case $casestat in
+    yes | y | Y | Yes | YES) SHOW_SUDO_COMMANDS_ONLY="";;
+    no | n | N | No | NO) SHOW_SUDO_COMMANDS_ONLY="YES";;
+  esac
+  unset casestat
+  echo "------------------------------------------------------"
+}
+
+#install dialog or abort if not possible
+#NOTE: This function must always exist!
+function install_dialog_package()
+{
+  #confirm it's installed (should be on suse 11.3)
+  if ! ispackage_installed dialog; then
+    echo "The package dialog isn't installed. Aborting script."
+    exit 1
+  fi
+}
+
+#install packages in Ubuntu
+#NOTE: This function must always exist!
+function install_packages()
+{
+  #define which packages need to be installed
+  PACKAGES_TO_INSTALL="gcc-c++ pv binutils-dev flex bison git-core build-essential libreadline5-dev wget zlib1g-dev"
+
+  if [ "x$BUILD_PARAVIEW" == "xon" ]; then
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL python-base cmake"
+  fi
+
+  #for Ubuntu 8.04, a few more packages are needed
+  if isleftlarger_or_equal 8.10 $SYSTEM_VERSION; then
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL curl"
+  fi
+
+  #for documentation, these are necessary
+  if [ "x$BUILD_DOCUMENTATION" == "xon" ]; then
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL doxygen graphviz"
+  fi
+
+  #for building gcc, these are necessary
+  if [ "x$BUILD_GCC" == "xon" ]; then
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL texinfo byacc"
+  fi
+
+  if [ "x$USE_SYSTEM_OPENMPI" == "xon" ]; then
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL openmpi-common openmpi-bin openmpi-doc"
+  fi
+
+  if [ "$arch" == "x64" ]; then
+    if [ "x$BUILD_GCC_STRICT_64BIT" != "xon" -o "x$THIRDPARTY_BIN_CMAKE" != "x" ]; then
+      PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL ia32-libs"
+    fi
+  fi
+
+  #install qt4-dev and qt4-dev-tools only if the custom build isn't used
+  if [ "x$BUILD_QT" != "xon" ]; then
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libqt4-dev qt4-dev-tools"
+  fi
+
+  #install OSMesa when chosen for ParaView
+  if [ "x$BUILD_PARAVIEW_WITH_OSMESA" == "xon" ]; then
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libosmesa6 libosmesa6-dev"
+  fi
+
+  #if paraview from repository option was selected, add it to the list of packages
+  if [ "x$USE_REPO_PV" == "xon" ]; then
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL paraview"
+  fi
+
+  #now remove the ones that are already installed
+  prune_packages_to_install
+
+  #only show commands for installation if any packages are missing!
+  if [ "x$PACKAGES_TO_INSTALL" != "x" ]; then
+
+    #if permission granted
+    if [ "x$SHOW_SUDO_COMMANDS_ONLY" != "xYES" ]; then
+
+      echo 'The command "sudo apt-get update -y -q=1" is now going to be executed. Please provide sudo password if it asks you.'
+      sudo apt-get update -y -q=1
+      if [ "x$DOUPGRADE" == "xon" ]; then
+        echo 'The command "sudo apt-get upgrade -y" is now going to be executed.'
+        sudo apt-get upgrade -y
+      fi
+
+      echo 'The command:'
+      echo "    sudo apt-get install -y -q=1 $PACKAGES_TO_INSTALL"
+      echo 'is now going to be executed.'
+      sudo apt-get install -y -q=1 $PACKAGES_TO_INSTALL
+
+    else
+
+      echo 'Please run the following commands in another terminal or ask your system''s administrator to run them:'
+      echo '    sudo apt-get update -y -q=1'
+      if [ "x$DOUPGRADE" == "xon" ]; then
+        echo '    sudo apt-get upgrade -y'
+      fi
+      echo "    sudo apt-get install -y -q=1 $PACKAGES_TO_INSTALL"
+      echo ' '
+      echo 'When the installation is complete, please press enter to continue this script.'
+      echo 'If you don''t want to install it now, press Ctrl+C.'
+      read aaa_tmp_var
+      unset aaa_tmp_var
+
+    fi
+
+  fi
+
+  #now remove the ones that are already installed again, to confirm that all have been installed!
+  prune_packages_to_install
+  if [ "x$PACKAGES_TO_INSTALL" != "x" ]; then
+    echo -e "\n\nWARNING: The following packages aren't installed:"
+    echo "  $PACKAGES_TO_INSTALL"
+    echo -e "\nDo you want to try and continue the OpenFOAM installation? (yes or no): "
+    read casestat;
+    case $casestat in
+      no | n | N | No | NO)
+        echo "Installation aborted."
+        set +e
+        exit 1
+        ;;
+    esac
+    unset casestat
+  fi
+}
+
+#Define files (including paths) to the files this script provides for common/$system
+#NOTE: This function must always exist!
+function define_script_s_files_system()
+{
+  #Nothing to do for now...
+  :
+}
+
+#define default options that are system dependent
+#NOTE: This function must always exist!
+function define_default_user_options_system()
+{
+  DOUPGRADE=off  #on | off
+}
+

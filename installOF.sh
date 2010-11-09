@@ -86,7 +86,9 @@ if [ -e "/etc/lsb-release" ]; then #checking "lsb-release" based distros
   #elif grep -i 'Debian' /etc/lsb-release > /dev/null; then
   fi
 
-#elif [ -e "/etc/SuSE-release" ]; then #checking SuSe based distros
+elif [ -e "/etc/SuSE-release" ]; then #checking SuSe based distros
+    INST_SYSTEM=suse
+    SYSTEM_VERSION=`grep "VERSION =" /etc/SuSE-release | sed s/'VERSION = '//g`
 #elif [ -e "/etc/redhat-release" ]; then #checking RedHat based distros
 fi
 

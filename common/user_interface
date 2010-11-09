@@ -236,13 +236,13 @@ function define_custom_optionals()
     USE_REPO_PV=off
     USE_KITWARE_PV=off
     for setting in $SETTINGSOPTS ; do
-      if [ $setting == 1 ] ; then BUILD_DOCUMENTATION=on ; fi
-      if [ $setting == 2 ] ; then USE_ALIAS_FOR_BASHRC=on ; fi
-      if [ $setting == 3 ] ; then USE_OF_GCC=on ; fi
-      if [ $setting == 4 ] ; then BUILD_CCM26TOFOAM=on ; fi
-      if [ $setting == 5 ] ; then USE_SYSTEM_OPENMPI=on ; fi
-      if [ $setting == 6 ] ; then USE_REPO_PV=on ; fi
-      if [ $setting == 7 ] ; then USE_KITWARE_PV=on ; fi
+      if [ $setting == "\"1\"" ] ; then BUILD_DOCUMENTATION=on ; fi
+      if [ $setting == "\"2\"" ] ; then USE_ALIAS_FOR_BASHRC=on ; fi
+      if [ $setting == "\"3\"" ] ; then USE_OF_GCC=on ; fi
+      if [ $setting == "\"4\"" ] ; then BUILD_CCM26TOFOAM=on ; fi
+      if [ $setting == "\"5\"" ] ; then USE_SYSTEM_OPENMPI=on ; fi
+      if [ $setting == "\"6\"" ] ; then USE_REPO_PV=on ; fi
+      if [ $setting == "\"7\"" ] ; then USE_KITWARE_PV=on ; fi
     done
   fi
 }
@@ -283,13 +283,13 @@ function define_paraview_options()
     BUILD_PARAVIEW_WITH_MPI=off
     BUILD_PARAVIEW_WITH_OSMESA=off
     for setting in $PVSETTINGSOPTS ; do
-      if [ $setting == 1 ] ; then BUILD_QT=on ; fi
-      if [ $setting == 2 ] ; then BUILD_CMAKE=on ; fi
-      if [ $setting == 3 ] ; then BUILD_PARAVIEW=on ; fi
-      if [ $setting == 4 ] ; then BUILD_PARAVIEW_WITH_GUI=on ; fi
-      if [ $setting == 5 ] ; then BUILD_PARAVIEW_WITH_PYTHON=on ; fi
-      if [ $setting == 6 ] ; then BUILD_PARAVIEW_WITH_MPI=on ; fi
-      if [ $setting == 7 ] ; then BUILD_PARAVIEW_WITH_OSMESA=on ; fi
+      if [ $setting == "\"1\"" ] ; then BUILD_QT=on ; fi
+      if [ $setting == "\"2\"" ] ; then BUILD_CMAKE=on ; fi
+      if [ $setting == "\"3\"" ] ; then BUILD_PARAVIEW=on ; fi
+      if [ $setting == "\"4\"" ] ; then BUILD_PARAVIEW_WITH_GUI=on ; fi
+      if [ $setting == "\"5\"" ] ; then BUILD_PARAVIEW_WITH_PYTHON=on ; fi
+      if [ $setting == "\"6\"" ] ; then BUILD_PARAVIEW_WITH_MPI=on ; fi
+      if [ $setting == "\"7\"" ] ; then BUILD_PARAVIEW_WITH_OSMESA=on ; fi
     done
   fi
 }
