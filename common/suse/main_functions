@@ -72,16 +72,11 @@ function install_dialog_package()
 #NOTE: This function must always exist!
 function install_packages()
 {
-  #define which packages need to be installed
-  PACKAGES_TO_INSTALL="gcc-c++ pv binutils-dev flex bison git-core build-essential libreadline5-dev wget zlib1g-dev"
+  #define which packages need to be installed (pv is not in standard repositories!)
+  PACKAGES_TO_INSTALL="gcc-c++ binutils-devel flex bison git-core zlib-devel"
 
   if [ "x$BUILD_PARAVIEW" == "xon" ]; then
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL python-base cmake"
-  fi
-
-  #for Ubuntu 8.04, a few more packages are needed
-  if isleftlarger_or_equal 8.10 $SYSTEM_VERSION; then
-    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL curl"
   fi
 
   #for documentation, these are necessary
@@ -128,26 +123,27 @@ function install_packages()
     #if permission granted
     if [ "x$SHOW_SUDO_COMMANDS_ONLY" != "xYES" ]; then
 
-      echo 'The command "sudo apt-get update -y -q=1" is now going to be executed. Please provide sudo password if it asks you.'
-      sudo apt-get update -y -q=1
+      echo 'The command "sudo zypper refresh -n -q" is now going to be executed. Please provide sudo password if it asks you.'
+      sudo zypper refresh -n -q
       if [ "x$DOUPGRADE" == "xon" ]; then
-        echo 'The command "sudo apt-get upgrade -y" is now going to be executed.'
-        sudo apt-get upgrade -y
+        echo 'The command "sudo zypper update -n" is now going to be executed.'
+        sudo zypper up -n
       fi
 
       echo 'The command:'
-      echo "    sudo apt-get install -y -q=1 $PACKAGES_TO_INSTALL"
+      echo "    sudo zypper install -n -q $PACKAGES_TO_INSTALL"
       echo 'is now going to be executed.'
-      sudo apt-get install -y -q=1 $PACKAGES_TO_INSTALL
+      wget "http://software.opensuse.org/search/download?base=openSUSE:11.3&file=openSUSE:/11.3:/Contrib/standard/i586/pv-1.1.4-1.1.i586.rpm&query=pv"
+      sudo zypper install -n -q $PACKAGES_TO_INSTALL ./pv-1.1.4-1.1.i586.rpm
 
     else
 
       echo 'Please run the following commands in another terminal or ask your system''s administrator to run them:'
-      echo '    sudo apt-get update -y -q=1'
+      echo '    sudo apt-get update -n -q'
       if [ "x$DOUPGRADE" == "xon" ]; then
-        echo '    sudo apt-get upgrade -y'
+        echo '    sudo zypper refresh -n'
       fi
-      echo "    sudo apt-get install -y -q=1 $PACKAGES_TO_INSTALL"
+      echo "    sudo zypper install -n -q $PACKAGES_TO_INSTALL"
       echo ' '
       echo 'When the installation is complete, please press enter to continue this script.'
       echo 'If you don''t want to install it now, press Ctrl+C.'
