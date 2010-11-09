@@ -123,27 +123,27 @@ function install_packages()
     #if permission granted
     if [ "x$SHOW_SUDO_COMMANDS_ONLY" != "xYES" ]; then
 
-      echo 'The command "sudo zypper refresh -n -q" is now going to be executed. Please provide sudo password if it asks you.'
-      sudo zypper refresh -n -q
+      echo 'The command "sudo zypper -n -q refresh" is now going to be executed. Please provide sudo password if it asks you.'
+      sudo zypper -n -q refresh
       if [ "x$DOUPGRADE" == "xon" ]; then
-        echo 'The command "sudo zypper update -n" is now going to be executed.'
-        sudo zypper up -n
+        echo 'The command "sudo zypper -n update" is now going to be executed.'
+        sudo zypper -n up
       fi
 
       echo 'The command:'
       echo "    sudo zypper install -n -q $PACKAGES_TO_INSTALL"
       echo 'is now going to be executed.'
       wget "http://software.opensuse.org/search/download?base=openSUSE:11.3&file=openSUSE:/11.3:/Contrib/standard/i586/pv-1.1.4-1.1.i586.rpm&query=pv"
-      sudo zypper install -n -q $PACKAGES_TO_INSTALL ./pv-1.1.4-1.1.i586.rpm
+      sudo zypper -n -q install $PACKAGES_TO_INSTALL ./pv-1.1.4-1.1.i586.rpm
 
     else
 
       echo 'Please run the following commands in another terminal or ask your system''s administrator to run them:'
-      echo '    sudo apt-get update -n -q'
+      echo '    sudo zypper -n -q refresh'
       if [ "x$DOUPGRADE" == "xon" ]; then
-        echo '    sudo zypper refresh -n'
+        echo '    sudo zypper -n update'
       fi
-      echo "    sudo zypper install -n -q $PACKAGES_TO_INSTALL"
+      echo "    sudo zypper -n -q install $PACKAGES_TO_INSTALL"
       echo ' '
       echo 'When the installation is complete, please press enter to continue this script.'
       echo 'If you don''t want to install it now, press Ctrl+C.'
