@@ -73,7 +73,7 @@ function install_dialog_package()
 function install_packages()
 {
   #define which packages need to be installed (pv is not in standard repositories!)
-  PACKAGES_TO_INSTALL="gcc-c++ binutils-devel flex bison git-core zlib-devel"
+  PACKAGES_TO_INSTALL="gcc-c++ binutils-devel flex bison git-core zlib-devel make"
 
   if [ "x$BUILD_PARAVIEW" == "xon" ]; then
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL python-base cmake"
@@ -90,7 +90,7 @@ function install_packages()
   fi
 
   if [ "x$USE_SYSTEM_OPENMPI" == "xon" ]; then
-    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL openmpi-common openmpi-bin openmpi-doc"
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL openmpi openmpi-devel"
   fi
 
   if [ "$arch" == "x64" ]; then
@@ -101,12 +101,12 @@ function install_packages()
 
   #install qt4-dev and qt4-dev-tools only if the custom build isn't used
   if [ "x$BUILD_QT" != "xon" ]; then
-    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libqt4-dev qt4-dev-tools"
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libqt4-devel"
   fi
 
   #install OSMesa when chosen for ParaView
   if [ "x$BUILD_PARAVIEW_WITH_OSMESA" == "xon" ]; then
-    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libosmesa6 libosmesa6-dev"
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL Mesa Mesa-devel"
   fi
 
   #if paraview from repository option was selected, add it to the list of packages
@@ -123,27 +123,27 @@ function install_packages()
     #if permission granted
     if [ "x$SHOW_SUDO_COMMANDS_ONLY" != "xYES" ]; then
 
-      echo 'The command "sudo zypper -n -q refresh" is now going to be executed. Please provide sudo password if it asks you.'
-      sudo zypper -n -q refresh
+      echo 'The command "sudo zypper -n refresh" is now going to be executed. Please provide sudo password if it asks you.'
+      sudo zypper -n refresh
       if [ "x$DOUPGRADE" == "xon" ]; then
         echo 'The command "sudo zypper -n update" is now going to be executed.'
         sudo zypper -n up
       fi
 
       echo 'The command:'
-      echo "    sudo zypper install -n -q $PACKAGES_TO_INSTALL"
+      echo "    sudo zypper install -n $PACKAGES_TO_INSTALL"
       echo 'is now going to be executed.'
       wget "http://software.opensuse.org/search/download?base=openSUSE:11.3&file=openSUSE:/11.3:/Contrib/standard/i586/pv-1.1.4-1.1.i586.rpm&query=pv"
-      sudo zypper -n -q install $PACKAGES_TO_INSTALL ./pv-1.1.4-1.1.i586.rpm
+      sudo zypper -n install $PACKAGES_TO_INSTALL ./pv-1.1.4-1.1.i586.rpm
 
     else
 
       echo 'Please run the following commands in another terminal or ask your system''s administrator to run them:'
-      echo '    sudo zypper -n -q refresh'
+      echo '    sudo zypper -n refresh'
       if [ "x$DOUPGRADE" == "xon" ]; then
         echo '    sudo zypper -n update'
       fi
-      echo "    sudo zypper -n -q install $PACKAGES_TO_INSTALL"
+      echo "    sudo zypper -n install $PACKAGES_TO_INSTALL"
       echo ' '
       echo 'When the installation is complete, please press enter to continue this script.'
       echo 'If you don''t want to install it now, press Ctrl+C.'

@@ -6,11 +6,10 @@
 #   unTar()
 
 #global variables used by this script:
-#   arch - the architecture for the build - defined in the master script
 
 
 #Code -----------------------------------------
-echo "Sourcing SuSE System Related Auxiliary functions..."
+echo "Sourcing Ubuntu Related Auxiliary functions..."
 
 
 #FUNCTIONS ------------------------------------------------------------------------------
@@ -21,52 +20,13 @@ echo "Sourcing SuSE System Related Auxiliary functions..."
 function ispackage_installed()
 {
   set +e
-  packageName=$1
-  testPositive=""
-
-  #since we aren't sure what we are looking for, we will try analyse package names according some heuristics:
-  # - if it starts with "lib", then look for it in the libraries
-  # - if it ends with ".h", then look for in source/include folders
-  # - otherwise, we are probably looking for and executable. If so, use "which" to look for it!
-
-  if [ "lib${packageName#lib}" == "${packageName}" ]; then
-    # - if it starts with "lib", then look for it in the libraries
-    #NOTE: a choice was made to not look in the folders set in LD_LIBRARY_PATH, because some systems
-    #have a convention not to look in that variable.
-    WHERETOLOOK="/lib /usr/lib /usr/local/lib"
-    if [ "$arch" == "x64" ]; then
-      WHERETOLOOK="$WHERETOLOOK /lib64 /usr/lib64 /usr/local/lib64"
-    fi
-    for libraryToLook in $WHERETOLOOK; do
-      if [ `find $libraryToLook -name "${packageName}\.*" | wc -l` -gt 0 ]; then
-        testPositive="exists"
-        break;
-      fi
-    done
-
-  elif [ "x${packageName#*.}" == "xh" -o "x${packageName#*.}" == "xhpp" ]; then
-    # - if it ends with ".h" (or hpp), then look for in source/include folders
-    WHERETOLOOK="/usr/local/include /usr/include"
-    for libraryToLook in $WHERETOLOOK; do
-      if [ `find $libraryToLook -name "${packageName}\.*" | wc -l` -gt 0 ]; then
-        testPositive="exists"
-        break;
-      fi
-    done
-
-  else
-    # - otherwise, we are probably looking for and executable. If so, use "which" to look for it!
-    if which ${packageName} > /dev/null; then
-      testPositive="exists"
-    fi
-  fi
-
-  if [ "x$testPositive" != "x" ]; then #if found, report it!
+  DPKGRESULTTMP=`cnf $1 2>&1 | grep -e "sudo zypper install"`
+  if [ "x$DPKGRESULTTMP" == "x" ]; then
     return 0
   else
     return 1
   fi
-  unset packageName
+  unset DPKGRESULTTMP
   set -e
 }
 
@@ -78,12 +38,13 @@ function unTar()
   TAR_FILE="$2"
   shift 2
 
-  case $TAR_OPT in
+  #TODO: option "-n" in "pv" will allow the usage of "dialog --gauge" :)
+  case ${TAR_OPT} in
   z | j)
-    tar -x${TAR_OPT}f ${TAR_FILE} $*
+    pv ${TAR_FILE} 2>&4 | tar -x${TAR_OPT} $*
     ;;
   *)
-    tar --${TAR_OPT} -xf ${TAR_FILE} $*
+    pv ${TAR_FILE} 2>&4 | tar --${TAR_OPT} -x $*
     ;;
   esac
 }
