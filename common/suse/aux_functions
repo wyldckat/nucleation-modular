@@ -9,7 +9,7 @@
 
 
 #Code -----------------------------------------
-echo "Sourcing Ubuntu Related Auxiliary functions..."
+echo "Sourcing SuSE Related Auxiliary functions..."
 
 
 #FUNCTIONS ------------------------------------------------------------------------------
