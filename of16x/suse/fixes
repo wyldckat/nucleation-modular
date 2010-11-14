@@ -7,7 +7,7 @@
 
 
 #Code -----------------------------------------
-echo "Sourcing patching functions for OpenFOAM ${OF_LONG_VERSION}, specific to Generic..."
+echo "Sourcing patching functions for OpenFOAM ${OF_LONG_VERSION}, specific to SuSE..."
 
 #-- FUNCTIONS -----------------------------------------------------
 

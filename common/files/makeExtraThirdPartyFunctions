@@ -25,7 +25,7 @@
 #     makeExtraThirdPartyFunctions
 #
 # Description
-#     Functions for managing the extra third-party packages required for the 
+#     Functions for managing the extra third-party packages required for the
 #   mingw builds.
 #
 #------------------------------------------------------------------------------
@@ -64,12 +64,21 @@ unpackFile()
     cd $2
   fi
 
+  EXTENSIONMODE=""
+  if [ "x`echo $1 | grep -e '\.bz2$'`" != "x" ]; then
+    EXTENSIONMODE="-j"
+  elif [ "x`echo $1 | grep -e '\.gz$'`" != "x" ]; then
+    EXTENSIONMODE="-z"
+  elif [ "x`echo $1 | grep -e '\.lzma$'`" != "x" ]; then
+    EXTENSIONMODE="--lzma"
+  fi
+
   echo "Extracting $1"
   if [ ! -f "$DownloadRepository/$1" ]; then
     echo "Could not unpack $1"
     exit 1
   else
-    tar -xf "$DownloadRepository/$1"
+    tar ${EXTENSIONMODE} -xf "$DownloadRepository/$1"
   fi
 }
 

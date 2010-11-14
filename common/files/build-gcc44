@@ -59,9 +59,11 @@ GCCVERSION="gcc-4.4.4"
 GMPVERSION="gmp-4.3.2"
 MPFRVERSION="mpfr-2.4.2"
 BINUTILSVERSION="binutils-2.20.1"
+MAKEVERSION="make-3.82"
 
 BUILDS_CLEANUP_AT_END=1 #0 - don't remove the build directories at the end; 1 - remove the build directories at the end
 HOMES_CLEANUP_AT_END=1 #0 - don't remove the home directories of unpacked files at the end; 1 - remove the home directories of unpacked files at the end
+BUILD_MAKE=1 #0 - don't build an up-to-date make; 1 - build an up-to-date make, which is useful for older systems
 
 #LOG FOLDER
 LOG_FOLDER="$WM_THIRD_PARTY_DIR/../buildLogs"
@@ -95,6 +97,7 @@ GCC_HOME="$WM_THIRD_PARTY_DIR/$GCCVERSION"
 GMP_HOME="$WM_THIRD_PARTY_DIR/$GMPVERSION"
 MPFR_HOME="$WM_THIRD_PARTY_DIR/$MPFRVERSION"
 BINUTILS_HOME="$WM_THIRD_PARTY_DIR/$BINUTILSVERSION"
+MAKE_HOME="$WM_THIRD_PARTY_DIR/$MAKEVERSION"
 REPORTMISSINGFILES="${DownloadRepository}/downloadReportProblems.txt"
 
 PREFIX="${WM_THIRD_PARTY_DIR}/platforms/$WM_ARCH$WM_COMPILER_ARCH/$GCCVERSION"
@@ -133,6 +136,7 @@ LOG_FOLDER=`( cd "$LOG_FOLDER" && pwd )`
 
 GCC_BDIR="$buildBASE/$GCCVERSION"
 BINUTILS_BDIR="$buildBASE/$BINUTILSVERSION"
+MAKE_BDIR="$buildBASE/$MAKEVERSION"
 
 #
 # Set the number of cores to build on
@@ -148,16 +152,16 @@ GCC_TARFILE="${GCCVERSION}.tar.bz2"
 GMP_TARFILE="${GMPVERSION}.tar.bz2"
 MPFR_TARFILE="${MPFRVERSION}.tar.bz2"
 BINUTILS_TARFILE="${BINUTILSVERSION}.tar.bz2"
+MAKE_TARFILE="${MAKEVERSION}.tar.bz2"
 
 GNU_URL="ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/${GCCVERSION}/${GCC_TARFILE}"
 GMP_URL="ftp://ftp.gnu.org/gnu/gmp/${GMP_TARFILE}"
 MPFR_URL="ftp://ftp.gnu.org/gnu/mpfr/${MPFR_TARFILE}"
 BINUTILS_URL="ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/binutils/releases/${BINUTILS_TARFILE}"
+MAKE_URL="ftp://ftp.gnu.org/gnu/make/${MAKE_TARFILE}"
 
 # Make sure these are initialized as we want them
 
-GCC_CORE=""
-BINUTILS=""
 GCC_LANGS="c,c++"
 
 
@@ -196,12 +200,18 @@ download_files()
   downloadFile $GMP_TARFILE $GMP_URL
   downloadFile $MPFR_TARFILE $MPFR_URL
   downloadFile $BINUTILS_TARFILE $BINUTILS_URL
+  if [ "x$BUILD_MAKE" = "x1" ]; then
+    downloadFile $MAKE_TARFILE $MAKE_URL
+  fi
 
   if [ -e "${REPORTMISSINGFILES}" ]; then rm "${REPORTMISSINGFILES}"; fi
   checkAndReport $GCC_TARFILE $GNU_URL
   checkAndReport $GMP_TARFILE $GMP_URL
   checkAndReport $MPFR_TARFILE $MPFR_URL
   checkAndReport $BINUTILS_TARFILE $BINUTILS_URL
+  if [ "x$BUILD_MAKE" = "x1" ]; then
+    checkAndReport $MAKE_TARFILE $MAKE_URL
+  fi
   if [ -e "${REPORTMISSINGFILES}" ]; then
     echo "It seems that some files were not downloaded with success. Please see the file:"
     echo "   ${REPORTMISSINGFILES}"
@@ -240,6 +250,9 @@ unpack_files()
   if [ ! -d $GMPVERSION ]; then unpackFile $GMP_TARFILE; fi
   if [ ! -d $MPFRVERSION ]; then unpackFile $MPFR_TARFILE; fi
   if [ ! -d $BINUTILSVERSION ]; then unpackFile $BINUTILS_TARFILE; fi
+  if [ "x$BUILD_MAKE" = "x1" ]; then
+    if [ ! -d $MAKEVERSION ]; then unpackFile $MAKE_TARFILE; fi
+  fi
 
   #fix links for GMP and MPFR
   do_links_GM
@@ -254,6 +267,53 @@ do_links_GM()
   fi
   if [ ! -d "$GCC_HOME/mpfr" ]; then
     ln -s $MPFR_HOME $GCC_HOME/mpfr
+  fi
+}
+
+
+configure_make()
+{
+  if [ -d "$MAKE_BDIR" ]; then rm -rf "$MAKE_BDIR"; fi
+  mkdir -p "$MAKE_BDIR"
+  cd "$MAKE_BDIR"
+  echo "Configuring make"
+  "$MAKE_HOME/configure" --prefix=${PREFIX} \
+      --disable-multilib \
+      --with-host-libstdcxx='-lstdc++' --with-gcc \
+      --with-gnu-as --with-gnu-ld --enable-shared --disable-rpath \
+      --disable-werror \
+      > ${LOG_FOLDER}/make-${WM_COMPILER}_configure.log  2>&1
+
+      ##--with-sysroot=${PREFIX}
+  if test $? -ne 0; then
+    echo "make of make failed - log available: ${LOG_FOLDER}/make-${WM_COMPILER}_configure.log"
+    exit 1
+  fi
+}
+
+
+build_make()
+{
+  cd "$MAKE_BDIR"
+  echo "Building make"
+  # -fno-exceptions
+  make -j $WM_NCOMPPROCS CFLAGS="-O2" LDFLAGS="-s" > \
+    ${LOG_FOLDER}/make-${WM_COMPILER}_make.log 2>&1
+  if test $? -ne 0; then
+    echo "make of make failed - log available: ${LOG_FOLDER}/make-${WM_COMPILER}_make.log"
+    exit 1
+  fi
+}
+
+
+install_make()
+{
+  cd "$MAKE_BDIR"
+  echo "Installing make"
+  make install > ${LOG_FOLDER}/make-${WM_COMPILER}_make-install.log 2>&1
+  if test $? -ne 0; then
+    echo "install of make failed - log available: ${LOG_FOLDER}/make-${WM_COMPILER}_make-install.log"
+    exit 1
   fi
 }
 
@@ -275,6 +335,9 @@ configure_binutils()
   if test $? -ne 0; then
     echo "make of binutils failed - log available: ${LOG_FOLDER}/binutils-${WM_COMPILER}_configure.log"
     exit 1
+  else
+    #Source of fix: http://wiki.osdev.org/Talk:GCC_Cross-Compiler#Texinfo
+    echo "MAKEINFO = :" >> Makefile
   fi
 }
 
@@ -370,6 +433,12 @@ final_clean_up()
 download_files
 
 unpack_files
+
+if [ "x$BUILD_MAKE" = "x1" ]; then
+  configure_make
+  build_make
+  install_make
+fi
 
 configure_binutils
 build_binutils

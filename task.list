@@ -133,13 +133,15 @@ Tasks to do:
   - makeParaView has hardcoded paths to Python and OSMesa... this is something that will need
     to be changed through "sed" when adding new Linux distros...
 
+
+  - Add OpenSUSE <- Anton is on it!
+
 --------------------------------------
 Wish list:
 
   Modules to add:
   - Add OpenFOAM 1.5-dev
   - Add FreeFOAM
-  - Add OpenSUSE
   - Add Fedora
   - Add Debian
   - Add CentOS

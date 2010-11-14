@@ -7,7 +7,7 @@
 #   INST_SYSTEM - System variant for installation - defined in the master script
 
 #Code -----------------------------------------
-echo "Sourcing Main functions functions for OpenFOAM $OF_LONG_VERSION and Ubuntu..."
+echo "Sourcing Main functions functions for OpenFOAM $OF_LONG_VERSION and SuSE..."
 
 #Define files (including paths) to the files this script provides for of$OF_SHORT_VERSION/system
 #NOTE: This function must always exist!
