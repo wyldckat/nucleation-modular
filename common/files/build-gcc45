@@ -65,9 +65,10 @@ MAKEVERSION="make-3.82"
 BUILDS_CLEANUP_AT_END=1 #0 - don't remove the build directories at the end; 1 - remove the build directories at the end
 HOMES_CLEANUP_AT_END=1 #0 - don't remove the home directories of unpacked files at the end; 1 - remove the home directories of unpacked files at the end
 BUILD_MAKE=1 #0 - don't build an up-to-date make; 1 - build an up-to-date make, which is useful for older systems
+SEND_OUTPUT_TO_LOGS=1 #0 - don't send config/make outputs to logs; 1 - send config/make outputs to independent logs
 
 #LOG FOLDER
-LOG_FOLDER="$WM_THIRD_PARTY_DIR/../buildLogs"
+LOG_FOLDER="$WM_PROJECT_INST_DIR/buildLogs"
 
 #-----------------------------------------------------
 #
@@ -77,6 +78,14 @@ LOG_FOLDER="$WM_THIRD_PARTY_DIR/../buildLogs"
 #
 #-----------------------------------------------------
 
+if [ $# -gt 0 ]; then
+  if [ "$1" = "--verbose" ]; then
+    SEND_OUTPUT_TO_LOGS=0 #0 - don't send config/make outputs to logs
+  else
+    echo "Argument $1 is not recognized."
+    exit 1
+  fi
+fi
 
 # What flavor of GCC cross-compiler are we building?
 case $WM_COMPILER in
@@ -105,6 +114,7 @@ REPORTMISSINGFILES="${DownloadRepository}/downloadReportProblems.txt"
 PREFIX="${WM_THIRD_PARTY_DIR}/platforms/$WM_ARCH$WM_COMPILER_ARCH/$GCCVERSION"
 PURGE=""
 PURGEBUILDBASE="Y"
+TARGET_LOG_STRING="" #initialize only
 
 if [ -d "$PREFIX" ]; then
   echo "It seems that there is already an existing custom $GCCVERSION compiler installed."
@@ -288,18 +298,28 @@ do_links_GM()
 }
 
 
+setup_targetlog()
+{
+  TARGET_LOG_STRING=""
+  if [ "x$SEND_OUTPUT_TO_LOGS" = "x1" ]; then
+    TARGET_LOG_STRING="> $1 2>&1"
+  fi
+}
+
 configure_make()
 {
+  setup_targetlog ${LOG_FOLDER}/make-${WM_COMPILER}_configure.log
+
   if [ -d "$MAKE_BDIR" ]; then rm -rf "$MAKE_BDIR"; fi
   mkdir -p "$MAKE_BDIR"
   cd "$MAKE_BDIR"
   echo "Configuring make"
-  "$MAKE_HOME/configure" --prefix=${PREFIX} \
+  eval "\"$MAKE_HOME/configure\" --prefix=${PREFIX} \
       --disable-multilib \
       --with-host-libstdcxx='-lstdc++' --with-gcc \
       --with-gnu-as --with-gnu-ld --enable-shared --disable-rpath \
       --disable-werror \
-      > ${LOG_FOLDER}/make-${WM_COMPILER}_configure.log  2>&1
+      ${TARGET_LOG_STRING}"
 
       ##--with-sysroot=${PREFIX}
   if test $? -ne 0; then
@@ -311,11 +331,12 @@ configure_make()
 
 build_make()
 {
+  setup_targetlog ${LOG_FOLDER}/make-${WM_COMPILER}_make.log
+
   cd "$MAKE_BDIR"
   echo "Building make"
   # -fno-exceptions
-  make -j $WM_NCOMPPROCS CFLAGS="-O2" LDFLAGS="-s" > \
-    ${LOG_FOLDER}/make-${WM_COMPILER}_make.log 2>&1
+  eval "make -j $WM_NCOMPPROCS CFLAGS=\"-O2\" LDFLAGS=\"-s\" ${TARGET_LOG_STRING}"
   if test $? -ne 0; then
     echo "make of make failed - log available: ${LOG_FOLDER}/make-${WM_COMPILER}_make.log"
     exit 1
@@ -325,9 +346,11 @@ build_make()
 
 install_make()
 {
+  setup_targetlog ${LOG_FOLDER}/make-${WM_COMPILER}_make-install.log
+
   cd "$MAKE_BDIR"
   echo "Installing make"
-  make install > ${LOG_FOLDER}/make-${WM_COMPILER}_make-install.log 2>&1
+  eval "make install ${TARGET_LOG_STRING}"
   if test $? -ne 0; then
     echo "install of make failed - log available: ${LOG_FOLDER}/make-${WM_COMPILER}_make-install.log"
     exit 1
@@ -337,17 +360,19 @@ install_make()
 
 configure_binutils()
 {
+  setup_targetlog ${LOG_FOLDER}/binutils-${WM_COMPILER}_configure.log
+
   if [ -d "$BINUTILS_BDIR" ]; then rm -rf "$BINUTILS_BDIR"; fi
   mkdir -p "$BINUTILS_BDIR"
   cd "$BINUTILS_BDIR"
   echo "Configuring binutils"
 
-  "$BINUTILS_HOME/configure" --prefix=${PREFIX} \
+  eval "\"$BINUTILS_HOME/configure\" --prefix=${PREFIX} \
       --disable-multilib \
       --with-host-libstdcxx='-lstdc++' --with-gcc \
       --with-gnu-as --with-gnu-ld --enable-shared --disable-rpath \
       --disable-werror \
-      > ${LOG_FOLDER}/binutils-${WM_COMPILER}_configure.log  2>&1
+      ${TARGET_LOG_STRING}"
 
       ##--with-sysroot=${PREFIX}
   if test $? -ne 0; then
@@ -362,11 +387,12 @@ configure_binutils()
 
 build_binutils()
 {
+  setup_targetlog ${LOG_FOLDER}/binutils-${WM_COMPILER}_make.log
+
   cd "$BINUTILS_BDIR"
   echo "Building binutils"
   # -fno-exceptions
-  make -j $WM_NCOMPPROCS CFLAGS="-O2" LDFLAGS="-s" > \
-    ${LOG_FOLDER}/binutils-${WM_COMPILER}_make.log 2>&1
+  eval "make -j $WM_NCOMPPROCS CFLAGS=\"-O2\" LDFLAGS=\"-s\" ${TARGET_LOG_STRING}"
   if test $? -ne 0; then
     echo "make of binutils failed - log available: ${LOG_FOLDER}/binutils-${WM_COMPILER}_make.log"
     exit 1
@@ -376,9 +402,11 @@ build_binutils()
 
 install_binutils()
 {
+  setup_targetlog ${LOG_FOLDER}/binutils-${WM_COMPILER}_make-install.log
+
   cd "$BINUTILS_BDIR"
   echo "Installing binutils"
-  make install > ${LOG_FOLDER}/binutils-${WM_COMPILER}_make-install.log 2>&1
+  eval "make install ${TARGET_LOG_STRING}"
   if test $? -ne 0; then
     echo "install of binutils failed - log available: ${LOG_FOLDER}/binutils-${WM_COMPILER}_make-install.log"
     exit 1
@@ -388,16 +416,18 @@ install_binutils()
 
 configure_gcc()
 {
+  setup_targetlog ${LOG_FOLDER}/gcc-${WM_COMPILER}_configure.log
+
   if [ -d "$GCC_BDIR" ]; then rm -rf "$GCC_BDIR"; fi
   mkdir -p "$GCC_BDIR"
   cd "$GCC_BDIR"
   echo "Configuring gcc"
 
-  ${GCC_HOME}/configure -v \
+  eval "${GCC_HOME}/configure -v \
     --prefix=${PREFIX} --disable-multilib \
     --with-pkgversion='OpenFOAM' --enable-languages=${GCC_LANGS} \
     --enable-__cxa_atexit --enable-libstdcxx-allocator=new \
-    > ${LOG_FOLDER}/gcc-${WM_COMPILER}_configure.log 2>&1
+    ${TARGET_LOG_STRING}"
 
   if test $? -ne 0; then
     echo "configure of gcc failed - log available: ${LOG_FOLDER}/gcc-${WM_COMPILER}_configure.log"
@@ -408,10 +438,11 @@ configure_gcc()
 
 build_gcc()
 {
+  setup_targetlog ${LOG_FOLDER}/gcc-${WM_COMPILER}_make.log
+
   cd "$GCC_BDIR"
   echo "Building gcc"
-  make -j $WM_NCOMPPROCS > \
-    ${LOG_FOLDER}/gcc-${WM_COMPILER}_make.log 2>&1
+  eval "make -j $WM_NCOMPPROCS ${TARGET_LOG_STRING}"
   if test $? -ne 0; then
     echo "make of gcc failed - log available: ${LOG_FOLDER}/gcc-${WM_COMPILER}_make.log"
     exit 1
@@ -421,9 +452,11 @@ build_gcc()
 
 install_gcc()
 {
+  setup_targetlog ${LOG_FOLDER}/gcc-${WM_COMPILER}_make-install.log
+
   cd "$GCC_BDIR"
   echo "Installing gcc"
-  make install > ${LOG_FOLDER}/gcc-${WM_COMPILER}_make-install.log 2>&1
+  eval "make install ${TARGET_LOG_STRING}"
   if test $? -ne 0; then
     echo "install of gcc failed - log available: ${LOG_FOLDER}/gcc-${WM_COMPILER}_make-install.log"
     exit 1

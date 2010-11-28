@@ -239,6 +239,13 @@ function set_BUILD_GCC_ROOT()
   BUILD_GCC_ROOT="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/gcc-$GCC_VERSION"
 }
 
+#set options for building gcc (script dependent)
+#NOTE: This function must always exist!
+function set_BUILD_GCC_OPTION()
+{
+  BUILD_GCC_OPTION="--verbose"
+}
+
 #It will request any fixes deemed necessary to gcc after it is built
 #NOTE: This function must always exist!
 function fix_gcc_if_necessary()

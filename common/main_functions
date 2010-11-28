@@ -205,9 +205,8 @@ function build_openfoam_gcc()
       rm -rf $BUILD_GCC_ROOT
     fi
 
-    if [ "x$BUILD_GCC_STRICT_64BIT" == "xon" ]; then
-      BUILD_GCC_OPTION="--disable-multilib"
-    fi
+    #set options for building gcc (script dependent)
+    set_BUILD_GCC_OPTION()
 
     BUILD_GCC_LOG="${BASE_OFVER_LOG_FOLDER}/build_gcc.log"
 
