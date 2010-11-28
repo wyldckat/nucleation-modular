@@ -74,6 +74,8 @@ function gcc_related_options()
     #Take care of unpack
     BUILD_GCC=off
     BUILD_GCC_STRICT_64BIT=off #this is optionable for x86_64 only
+    #remove any commas (happens in (Open)SuSE)
+    GCCSETTINGSOPTS=`echo $GCCSETTINGSOPTS | sed 's="==g'`
     for setting in $GCCSETTINGSOPTS ; do
       if [ $setting == 1 ] ; then BUILD_GCC=on ; fi
       if [ $setting == 2 ] ; then BUILD_GCC_STRICT_64BIT=on ; fi

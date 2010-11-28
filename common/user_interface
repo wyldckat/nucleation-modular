@@ -180,6 +180,8 @@ function define_base_custom_options()
     #Take care of unpack settings from PVSETTINGSOPTS
     CUSTOMOPTS_OFOPTIONALS=off
     CUSTOMOPTS_PARAVIEW=off
+    #remove any commas (happens in (Open)SuSE)
+    CUSTOMOPTS=`echo $CUSTOMOPTS | sed 's="==g'`
     for setting in $CUSTOMOPTS ; do
       if [ $setting == 1 ] ; then CUSTOMOPTS_OFOPTIONALS=on ; fi
       if [ $setting == 2 ] ; then CUSTOMOPTS_PARAVIEW=on ; fi

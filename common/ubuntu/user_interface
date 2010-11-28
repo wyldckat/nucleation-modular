@@ -33,6 +33,8 @@ function define_system_custom_optionals()
 
     #Take care of unpack settings from SETTINGSOPTS
     DOUPGRADE=off
+    #remove any commas (happens in (Open)SuSE)
+    SETTINGSOPTS=`echo $SETTINGSOPTS | sed 's="==g'`
     for setting in $SETTINGSOPTS ; do
       if [ $setting == 1 ] ; then DOUPGRADE=on ; fi
     done
