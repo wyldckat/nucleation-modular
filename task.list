@@ -118,6 +118,9 @@ Tasks to do:
     - check how to measure progress (make[.] or does it show %) <- done
     - check sanity depending on Ubuntu version (and also adapt in Generic!) <- TODO!!
 
+  - still need to add a patch for multi-core building of OpenMPI (see the patch
+    here: http://www.openfoam.com/mantisbt/view.php?id=79).
+
   - TEST FIX TEST FIX TEST FIX TEST FIX TEST FIX TEST FIX TEST FIX.... Then release?
     - Distros to test on:
       - Ubuntu 8.04 i686

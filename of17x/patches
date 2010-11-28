@@ -232,8 +232,8 @@ echo '--- makeParaView.orig 2010-06-24 11:49:40.000000000 +0100
 
  # extra QT gui support (useful for some third party apps)
  withQT=true
---- makeParaViewFunctions.orig  2010-04-26 11:26:16.000000000 +0100
-+++ makeParaViewFunctions 2010-11-07 13:45:45.000000000 +0000
+--- tools/makeParaViewFunctions.orig  2010-04-26 11:26:16.000000000 +0100
++++ tools/makeParaViewFunctions 2010-11-07 13:45:45.000000000 +0000
 @@ -267,7 +267,7 @@
 
  addQtSupport()

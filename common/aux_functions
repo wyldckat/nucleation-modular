@@ -295,14 +295,15 @@ function collect_list_of_versions()
   OF_VERSIONS_DIALOG_NUM=0
   OF_VERSIONS_DIALOG=""
 
-  mods2load=`find ${SCRIPT_WORKFOLDER} -name mod.version`
+  mods2load=`find ${SCRIPT_WORKFOLDER} -name mod.version | sort`
 
   for module2load in ${mods2load}; do
     . ${module2load}
     OF_VERSIONS_DIALOG="${OF_VERSIONS_DIALOG} '${OF_MODULE_NAME}' '${OF_SCREEN_NAME}' off"
     OF_VERSIONS_DIALOG_NUM=`expr $OF_VERSIONS_DIALOG_NUM + 1`
 
-    eval "eval ${MODULE_VARS_TO_UNSET}"
+    #this unsets the variables defined in the loaded mod.version
+    eval "unset ${MODULE_VARS_TO_UNSET}"
   done
 
   unset mods2load module2load
