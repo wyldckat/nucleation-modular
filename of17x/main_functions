@@ -58,7 +58,7 @@ function define_packages_to_download()
 
   if [ "x$BUILD_CMAKE" == "xon" ]; then
     CMAKE_VERSION=2.8.1
-    CMAKE_BASEURL="http://www.cmake.org/files/v2.8/"
+    CMAKE_BASEURL="http://www.cmake.org/files/v2.8"
     CMAKE_PACKAGEFILE="cmake-$CMAKE_VERSION.tar.gz"
   fi
 
@@ -174,7 +174,7 @@ function unpack_downloaded_files()
   if [ "x$BUILD_QT" == "xon" ]; then
     cd_thirdparty
     echo "Untaring $QT_PACKAGEFILE"
-    unTar j $BASE_DOWNLOADS_FOLDER/$QT_PACKAGEFILE
+    unTar z $BASE_DOWNLOADS_FOLDER/$QT_PACKAGEFILE
 
     #copy makeQt script
     cp ${MAKEQTFILE[1]} .

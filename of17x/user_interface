@@ -47,8 +47,8 @@ function gcc_related_options()
       --backtitle "$GUI_BACKTITLE"         \
       --checklist "Choose Install settings: < Space to select ! >" 10 60 3 \
       1 "Build GCC? (otherwise use pre-compiled version)" $BUILD_GCC \
-      2 "Build gcc series 4.4 (pick only one version)" off \
-      3 "Build gcc series 4.5 (pick only one version)" on )
+      2 "Use gcc 4.4 (pick only one version to build)" off \
+      3 "Use gcc 4.5 (pick only one version to build)" on )
 
       if [ x"$?" == x"0" ]; then
         break;
