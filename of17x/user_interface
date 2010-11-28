@@ -45,7 +45,7 @@ function gcc_related_options()
     while : ; do
       GCCSETTINGSOPTS=$(dialog --stdout --separate-output \
       --backtitle "$GUI_BACKTITLE"         \
-      --checklist "Choose Install settings: < Space to select ! >" 10 60 1 \
+      --checklist "Choose Install settings: < Space to select ! >" 10 60 3 \
       1 "Build GCC? (otherwise use pre-compiled version)" $BUILD_GCC \
       2 "Build gcc series 4.4 (pick only one version)" off \
       3 "Build gcc series 4.5 (pick only one version)" on )
