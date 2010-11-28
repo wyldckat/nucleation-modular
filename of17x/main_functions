@@ -29,7 +29,8 @@ function define_packages_to_download()
   SOURCEFORGE_URL_OPTIONS="?use_mirror=$mirror"
 
   #OpenFOAM's Git repository
-  OPENFOAM_GIT_REPO="git://github.com/OpenCFD/OpenFOAM-${OF_LONG_VERSION}.git"
+  #OPENFOAM_GIT_REPO="git://github.com/OpenCFD/OpenFOAM-${OF_LONG_VERSION}.git"
+  OPENFOAM_GIT_REPO="http://repo.or.cz/r/OpenFOAM-${OF_LONG_VERSION}.git" #had to resort to the mirror, due to github issues...
 
   #Third Party files to download
   THIRDPARTY_GENERAL="ThirdParty-1.7.1.gtgz"
