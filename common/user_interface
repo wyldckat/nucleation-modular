@@ -77,12 +77,12 @@ function show_intro_dialog()
 #Presentation dialog
 dialog --title "$GUI_BACKTITLE" \
 --msgbox "-------------------------------------------------------------------\n
-| =========              |\n
-| \\      / F ield        | Unofficial OpenFOAM Installer (${INST_SYSTEM} variant)\n
-|  \\    /  O peration    | Licensed under GPLv3\n
-|   \\  /   A nd          | Web: ${MAIN_PAGE_URL}\n
-|    \\/    M anipulation | Contributions: ${MAIN_PAGE_URL}/${CONTRIBS_WIKIPAGE_PATH}\n
-|                        | Based on original work from Mads Reck\n
+| \n
+| Unofficial OpenFOAM Installer (${INST_SYSTEM} variant)\n
+| Licensed under GPLv3\n
+| Web: ${MAIN_PAGE_URL}\n
+| Contributions: ${MAIN_PAGE_URL}/${CONTRIBS_WIKIPAGE_PATH}\n
+| \n
 -----------------------------------------------------------------------" 12 80
 }
 
