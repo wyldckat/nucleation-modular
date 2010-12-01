@@ -166,7 +166,7 @@ function define_base_custom_options()
     while : ; do
       CUSTOMOPTS=$(dialog --stdout --separate-output \
       --backtitle "$GUI_BACKTITLE"         \
-      --checklist "Build only parts, excluding OpenFOAM: < Space to select ! >" 15 65 2 \
+      --checklist "Build only parts, excluding OpenFOAM: < Space to select ! >" 5 65 2 \
       1 "Build OpenFOAM optionals" $CUSTOMOPTS_OFOPTIONALS \
       2 "Build ParaView with(out) Qt" $CUSTOMOPTS_PARAVIEW )
 
