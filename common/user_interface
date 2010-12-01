@@ -166,7 +166,7 @@ function define_base_custom_options()
     while : ; do
       CUSTOMOPTS=$(dialog --stdout --separate-output \
       --backtitle "$GUI_BACKTITLE"         \
-      --checklist "Build only parts, excluding OpenFOAM: < Space to select ! >" 5 65 2 \
+      --checklist "Build only parts, excluding OpenFOAM: < Space to select ! >" 10 65 2 \
       1 "Build OpenFOAM optionals" $CUSTOMOPTS_OFOPTIONALS \
       2 "Build ParaView with(out) Qt" $CUSTOMOPTS_PARAVIEW )
 
@@ -384,14 +384,14 @@ function final_interface_before_install()
     (dialog --backtitle "$GUI_BACKTITLE" \
 --title "Final settings (summary) - <ESC> to abort the Installer" \
 --msgbox "-------------------------------------------------------------------------\n
-| =========   Detected that you are running: $INST_SYSTEM $SYSTEM_VERSION - $arch\n
-| \\      /    The choosed mirror is: $mirror\n
-|  \\    /     Logging: $LOG_OUTPUTS\n
-|   \\  /      Install mode: $INSTALLMODE\n
-|    \\/       Build documentation ? $BUILD_DOCUMENTATION\n
-| *installOF* Use startFoam alias ? $USE_ALIAS_FOR_BASHRC\n
-| *settings*  Use custom gcc ? $USE_OF_GCC\n
-|             Build ParaView ? $BUILD_PARAVIEW\n
+| Detected that you are running: $INST_SYSTEM $SYSTEM_VERSION - $arch\n
+| The choosed mirror is: $mirror\n
+| Logging: $LOG_OUTPUTS\n
+| Install mode: $INSTALLMODE\n
+| Build documentation ? $BUILD_DOCUMENTATION\n
+| Use startFoam alias ? $USE_ALIAS_FOR_BASHRC\n
+| Use custom gcc ? $USE_OF_GCC\n
+| Build ParaView ? $BUILD_PARAVIEW\n
 -------------------------------------------------------------------------\n
 !For more info see documentation on $MAIN_PAGE_URL" 15 80)
 
