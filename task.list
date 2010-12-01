@@ -86,6 +86,28 @@ Done:
     - didn't build OpenFOAM, probably due to the previous folder not existing <- fixed - it was because the log file couldn't be created
     - when taring final report, there was a warning message about trailing '/' <- should be fixed...
 
+  - basic tests complete - start implementation of OpenFOAM 1.7.x
+    - dialog for picking which version to build. <- done
+    - copied scripts from 1.6.x but barely changed them. There is still a lot to do here:
+      - adapt patches to 1.7.x <- done
+      - change files needed to be downloaded and installed <- done
+      - change Qt version necessary and add necessary makeQt <- done
+      - verify packages needed to be installed <- done
+      - modify the generic version accordingly <- done
+
+  - generic module list generation, based on using "mod.version" for knowing which modules exist.
+    ^- done
+
+  - create a folder for downloads made by this script! <- done
+
+  - add cmake to the build system/list
+    - downloading, unpacking, execution <- done
+    - create makeCMake (per OpenFOAM version) <- done
+    - check how to measure progress (make[.] or does it show %) <- done
+
+  - still need to add a patch for multi-core building of OpenMPI (see the patch
+    here: http://www.openfoam.com/mantisbt/view.php?id=79). <- done
+
 --------------------------------------
 
 
@@ -95,31 +117,11 @@ Tasks to do:
 
   - bugs to fix:
 
-  - basic tests complete - start implementation of OpenFOAM 1.7.x
-    - dialog for picking which version to build. <- done, untested
-    - copied scripts from 1.6.x but barely changed them. There is still a lot to do here:
-      - adapt patches to 1.7.x <- done
-      - change files needed to be downloaded and installed <- done
-      - change Qt version necessary and add necessary makeQt <- done
-      - verify packages needed to be installed <- done
-      - modify the generic version accordingly <- done
-      ^- all untested
-
   - implement updates made by Anton and myself in the installOF.sh 1.6.x script.
     ^- done, also untested
-  - create a folder for downloads made by this script! <- done, untested...
-
-  - generic module list generation, based on using "mod.version" for knowing which modules exist.
-    ^- done, but untested
 
   - add cmake to the build system/list
-    - downloading, unpacking, execution <- done
-    - create makeCMake (per OpenFOAM version) <- done
-    - check how to measure progress (make[.] or does it show %) <- done
     - check sanity depending on Ubuntu version (and also adapt in Generic!) <- TODO!!
-
-  - still need to add a patch for multi-core building of OpenMPI (see the patch
-    here: http://www.openfoam.com/mantisbt/view.php?id=79). <- done
 
   - TEST FIX TEST FIX TEST FIX TEST FIX TEST FIX TEST FIX TEST FIX.... Then release?
     - Distros to test on:
@@ -129,7 +131,7 @@ Tasks to do:
       - Ubuntu 9.10 x86_64
       - Ubuntu 10.04 i686
       - Ubuntu 10.04 x86_64
-      - Ubuntu 10.10 i686
+      - Ubuntu 10.10 i686 <- tested but only in pieces, not in a complete run.
       - Ubuntu 10.10 x86_64
       - Generic (on OpenSUSE or Fedora...)
 
