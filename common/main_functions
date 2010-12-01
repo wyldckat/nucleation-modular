@@ -1141,7 +1141,11 @@ function build_PV3FoamReader()
       bash -c "time wmake all" >> "$PV3FOAMREADER_BUILD_LOG" 2>&1
       export WM_DO_TIMINGS=
 
+      #This is for OpenFOAM 1.6
       if [ -e "$FOAM_LIBBIN/libvtkPV3Foam.so" -a -e "$FOAM_LIBBIN/libPV3FoamReader.so" -a -e "$FOAM_LIBBIN/libPV3FoamReader_SM.so" ]; then
+        echo "Build process finished successfully: paraFoam is ready to use."
+      #This is for OpenFOAM 1.7
+      elif [ -e "$FOAM_LIBBIN/libvtkPV3Foam.so" -a -e "$FOAM_LIBBIN/libPV3FoamReaders.so" ]; then
         echo "Build process finished successfully: paraFoam is ready to use."
       else
         echo "Build process didn't finished with success. A report with be created at the end of this installation script."

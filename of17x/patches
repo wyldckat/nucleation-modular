@@ -303,15 +303,6 @@ echo '--- makeParaView.orig 2010-06-24 11:49:40.000000000 +0100
  }
 
 
-@@ -385,7 +386,7 @@
-     cd $ParaView_BINARY_DIR || exit 1  # change to build folder
-     echo "    Installing ParaView to $ParaView_DIR"
-
--    make install
-+    make install -j $WM_NCOMPPROCS
-
- cat<< INFO
-     ---
 ' | patch -p0
 cd $tmpVar
 unset tmpVar
