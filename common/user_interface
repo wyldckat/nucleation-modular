@@ -81,7 +81,7 @@ dialog --title "$GUI_BACKTITLE" \
 | \\      / F ield        | Unofficial OpenFOAM Installer (${INST_SYSTEM} variant)\n
 |  \\    /  O peration    | Licensed under GPLv3\n
 |   \\  /   A nd          | Web: ${MAIN_PAGE_URL}\n
-|    \\/    M anipulation | By: Various contributors (see the page above)\n
+|    \\/    M anipulation | Contributions: ${MAIN_PAGE_URL}/${CONTRIBS_WIKIPAGE_PATH}\n
 |                        | Based on original work from Mads Reck\n
 -----------------------------------------------------------------------" 12 80
 }

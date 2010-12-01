@@ -60,13 +60,13 @@ function gcc_related_options()
     #Take care of unpack
     BUILD_GCC=off
     BUILD_GCC_STRICT_64BIT=off #Always off for OpenFOAM 1.7.x
-    GCC_VERSION=45
+    GCC_VERSION_OPTION=45
     #remove any commas (happens in (Open)SuSE)
     GCCSETTINGSOPTS=`echo $GCCSETTINGSOPTS | sed 's="==g'`
     for setting in $GCCSETTINGSOPTS ; do
       if [ $setting == 1 ] ; then BUILD_GCC=on ; fi
-      if [ $setting == 2 ] ; then GCC_VERSION=44 ; fi
-      if [ $setting == 3 ] ; then GCC_VERSION=45 ; fi
+      if [ $setting == 2 ] ; then GCC_VERSION_OPTION=44 ; fi
+      if [ $setting == 3 ] ; then GCC_VERSION_OPTION=45 ; fi
     done
 
   else

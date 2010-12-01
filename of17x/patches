@@ -55,6 +55,9 @@ function apply_patches()
     patchSettingsToOpenFOAMCompiler
   fi
 
+  #define the proper compiler version in settings.sh (hard coded)
+  patchSettingsToGccVersion
+
   #Define that the system's OpenMPI should be used in prefs.sh
   if [ "x$USE_SYSTEM_OPENMPI" == "xon" ]; then
     patchBashrcToSystemOpenMPI
@@ -206,6 +209,25 @@ function patchSettingsToOpenFOAMCompiler()
 
   echo '' >> prefs.sh
   echo 'compilerInstall=OpenFOAM' >> prefs.sh
+
+  cd $tmpVar
+  unset tmpVar
+}
+
+function patchSettingsToGccVersion()
+{
+  tmpVar=$PWD
+  cd_openfoam
+  cd OpenFOAM-${OF_LONG_VERSION}/etc/
+
+  if [ "x$GCC_VERSION_OPTION" == "x45" ]; then
+    sed -i -e "s/gcc_version=gcc-4\.5\.[0-9]*/gcc_version=gcc-${GCC_VERSION}/" settings.sh
+  else #if [ "x$GCC_VERSION_OPTION" == "x44" ]; then
+    sed -i -e "s/gcc_version=gcc-4\.4\.[0-9]*/gcc_version=gcc-${GCC_VERSION}/" settings.sh
+  fi
+
+  echo '' >> prefs.sh
+  echo 'export WM_COMPILER=Gcc'$GCC_VERSION_OPTION >> prefs.sh
 
   cd $tmpVar
   unset tmpVar

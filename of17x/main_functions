@@ -91,10 +91,10 @@ function define_script_s_files_ofv()
 
   #define gcc variables and files
   if [ "x$BUILD_GCC" == "xon" ]; then
-    if [ "x$GCC_VERSION" == "x45" ]; then
+    if [ "x$GCC_VERSION_OPTION" == "x45" ]; then
       GCC_VERSION=4.5.1
       GCCMODED_MAKESCRIPT=$GCCMODED_BUILD_GCC45_SCRIPT
-    else #if [ "x$GCC_VERSION" == "x44" ]; then
+    else #if [ "x$GCC_VERSION_OPTION" == "x44" ]; then
       GCC_VERSION=4.4.4
       GCCMODED_MAKESCRIPT=$GCCMODED_BUILD_GCC44_SCRIPT
     fi
@@ -229,9 +229,9 @@ function process_online_log_of_timings()
 
   #TODO: this value is hard coded for now, since it should come from the output of our timings script
   #The total count of "make[.]" found in our build_gcc.log
-  if [ "x$GCC_VERSION" == "x45" ]; then
+  if [ "x$GCC_VERSION_OPTION" == "x45" ]; then
     BUILD_GCC_LAST_BUILD_COUNT=817
-  else #if [ "x$GCC_VERSION" == "x44" ]; then
+  else #if [ "x$GCC_VERSION_OPTION" == "x44" ]; then
     BUILD_GCC_LAST_BUILD_COUNT=745
   fi
 
@@ -275,7 +275,7 @@ function set_QT_PLATFORM_PATH()
 #NOTE: This function must always exist!
 function set_BUILD_QT_OPTION()
 {
-  BUILD_QT_OPTION="-opensource"
+  BUILD_QT_OPTION="-opensource --confirm-license=yes"
 }
 
 #set the CMake root path for OpenFOAM 1.7.x

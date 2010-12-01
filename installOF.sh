@@ -18,6 +18,9 @@
 #Main page URL
 MAIN_PAGE_URL="http://code.google.com/p/openfoam-ubuntu"
 
+#Contribs subpage
+CONTRIBS_WIKIPAGE_PATH="wiki/Contribs"
+
 #This script's repository
 SCRIPT_REPO="http://modular.openfoam-ubuntu.googlecode.com/hg"
 

@@ -26,7 +26,8 @@
 #     makeQt
 #
 # Description
-#     Build script for Qt-4.6.3
+#     Build script for Qt-4.6.3. Minor changes based on version that came
+#   with OpenFOAM 1.6 ThirdParty package.
 #
 #------------------------------------------------------------------------------
 
@@ -45,7 +46,7 @@ then
     ./configure \
         --prefix=${QT_ARCH_PATH} \
         -nomake demos \
-        -nomake examples $1
+        -nomake examples $*
 
     if [ -r /proc/cpuinfo ]
     then
