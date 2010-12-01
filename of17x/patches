@@ -74,6 +74,9 @@ function apply_patches()
     patchParaFoamSys
   fi
 
+  #patch ThirdParty's Allwmake
+  patchTPAllwmake
+
   #apply patches associated with the system itself
   apply_patches_system
 }
@@ -321,4 +324,18 @@ function patchParaFoamSys()
 
   cd $tmpVar
   unset tmpVar
+}
+
+#Patch file ThirdParty's Allwmake
+function patchTPAllwmake()
+{
+tmpVar=$PWD
+cd_thirdparty
+
+if [ -e "${TPAMPATCHFILE[1]}" ]; then
+  patch -p0 < ${TPAMPATCHFILE[1]}
+fi
+
+cd $tmpVar
+unset tmpVar
 }

@@ -111,6 +111,11 @@ function define_script_s_files_ofv()
   #define file for building CMake
   MAKECMAKEFILE[0]="makeCMake"
   MAKECMAKEFILE[1]="${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/files/${MAKECMAKEFILE[0]}"
+
+  #patch file for ThirdParty Allwmake
+  #source: http://www.openfoam.com/mantisbt/view.php?id=79
+  TPAMPATCHFILE[0]="ThirdParty_Allwmake.diff"
+  TPAMPATCHFILE[1]="${SCRIPT_WORKFOLDER}/${OF_MODULE_NAME}/files/${TPAMPATCHFILE[0]}"
 }
 
 

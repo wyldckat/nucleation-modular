@@ -1,0 +1,72 @@
+--- Allwmake.orig	2010-06-24 12:12:00.000000000 +0100
++++ Allwmake	2010-11-14 18:23:58.000000000 +0000
+@@ -70,6 +70,11 @@
+         set -x
+         cd "${MPI_ARCH_PATH##*/}" || exit 1    # change to openmpi-VERSION
+ 
++        #
++        # Set the number of cores to build on
++        #
++        getNCOMPPROCS -v
++
+         make distclean 2>/dev/null
+         rm -rf $MPI_ARCH_PATH
+ 
+@@ -99,7 +104,7 @@
+             $mpiWith \
+             ;
+ 
+-        make
++        make -j $WM_NCOMPPROCS
+         make install
+         make distclean
+     )
+@@ -118,6 +123,11 @@
+         set -x
+         cd $MPI_HOME || exit 1    # change to mpich-VERSION
+ 
++        #
++        # Set the number of cores to build on
++        #
++        getNCOMPPROCS -v
++
+         make distclean 2>/dev/null
+         rm -rf $MPI_ARCH_PATH
+         rm util/machines/machines.*
+@@ -136,7 +146,7 @@
+             --with-device=ch_p4 \
+             ;
+ 
+-        make
++        make -j $WM_NCOMPPROCS
+         make install
+         make distclean
+ 
+@@ -165,13 +175,16 @@
+ esac
+ 
+ 
++#create the final target folder for libscotch, if it doesn't exist yet
++if [ ! -d $FOAM_LIBBIN ]; then mkdir -p $FOAM_LIBBIN; fi
++
+ echo ========================================
+ echo Build Scotch decomposition library
+ echo
+ if [ -r $FOAM_LIBBIN/libscotch.so -a -r $FOAM_LIBBIN/libscotcherrexit.so ]
+ then
+     echo "have scotch shared libraries"
+-elif [ -r scotch_5.1/lib/libptscotch.so -a -r scotch_5.1/lib/libptscotcherrexit.so ]
++elif [ -r scotch_5.1/lib/libscotch.so -a -r scotch_5.1/lib/libscotcherrexit.so ]
+ then
+ (
+     echo "have scotch shared libraries in scotch_5.1/lib"
+@@ -192,6 +205,9 @@
+ 
+ if [ -d "$MPI_ARCH_PATH" ]
+ then
++    #create the target folder, if it doesn't exist yet
++    if [ ! -d $FOAM_MPI_LIBBIN ]; then mkdir -p $FOAM_MPI_LIBBIN; fi
++
+     echo "========================================"
+     echo "Build PTScotch decomposition library (requires MPI)"
+     echo
