@@ -227,8 +227,7 @@ function process_online_log_of_timings()
   if [ "x$GCC_VERSION" == "x45" ]; then
     BUILD_GCC_LAST_BUILD_COUNT=817
   else #if [ "x$GCC_VERSION" == "x44" ]; then
-    # FIXME: this hard coded value needs updating...
-    BUILD_GCC_LAST_BUILD_COUNT=556
+    BUILD_GCC_LAST_BUILD_COUNT=745
   fi
 
   # NOTE:
