@@ -119,7 +119,7 @@ Tasks to do:
     - check sanity depending on Ubuntu version (and also adapt in Generic!) <- TODO!!
 
   - still need to add a patch for multi-core building of OpenMPI (see the patch
-    here: http://www.openfoam.com/mantisbt/view.php?id=79).
+    here: http://www.openfoam.com/mantisbt/view.php?id=79). <- done
 
   - TEST FIX TEST FIX TEST FIX TEST FIX TEST FIX TEST FIX TEST FIX.... Then release?
     - Distros to test on:
@@ -137,13 +137,13 @@ Tasks to do:
     to be changed through "sed" when adding new Linux distros...
 
 
-  - Add OpenSUSE <- Anton is on it!
+  - Add (Open)SuSE <- Anton is on it!
 
 --------------------------------------
 Wish list:
 
   Modules to add:
-  - Add OpenFOAM 1.5-dev
+  - Add OpenFOAM 1.6-ext
   - Add FreeFOAM
   - Add Fedora
   - Add Debian
@@ -164,8 +164,6 @@ Unsorted tasks:
    8. finally, move/copy the script (and dependents) into the new repo (in a
    dedicated folder please!) and change the path to the repo in the new copy
    (variable OPENFOAM_UBUNTU_SCRIPT_REPO).
-
-    5. start adding other distros!
 --------------------------------------
 
 

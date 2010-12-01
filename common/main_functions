@@ -605,7 +605,7 @@ function final_messages_for_clean_install()
 
       if [ "x$BUILDING_QT_FAILED" == "xYes" ]; then
         echo " - Building Qt failed;"
-        FILES_TO_REPORT="$FILES_TO_REPORT $BUILDING_QT_FAILED"
+        FILES_TO_REPORT="$FILES_TO_REPORT $BUILD_QT_LOG"
       fi
 
       if [ "x$BUILDING_PARAVIEW_FAILED" == "xYes" ]; then
@@ -626,7 +626,9 @@ function final_messages_for_clean_install()
 
     echo "Compressing file ${FINAL_REPORT_FILE}"
     if [ -e "${FINAL_REPORT_FILE}" ]; then rm -f "${FINAL_REPORT_FILE}"; fi
+    set -x #need to do some debug on the tar subject...
     tar -czf "${FINAL_REPORT_FILE}" $FILES_TO_REPORT 2>&4 1>&4 #redirections needed to avoid log being changed
+    set +x
     echo "Compression complete. Please attach this file to your report at this forum thread:"
     echo "  ${FORUM_THREAD}"
     echo -e '\nYou can also verify that thread for other people who might have had the same problems.'
