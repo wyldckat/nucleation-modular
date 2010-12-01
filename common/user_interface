@@ -76,14 +76,14 @@ function show_intro_dialog()
 {
 #Presentation dialog
 dialog --title "$GUI_BACKTITLE" \
---msgbox "-------------------------------------------------------------------\n
+--msgbox "------------------------------------------------------------------------\n
 | \n
 | Unofficial OpenFOAM Installer (${INST_SYSTEM} variant)\n
 | Licensed under GPLv3\n
 | Web: ${MAIN_PAGE_URL}\n
 | Contributions: ${MAIN_PAGE_URL}/${CONTRIBS_WIKIPAGE_PATH}\n
 | \n
------------------------------------------------------------------------" 12 80
+------------------------------------------------------------------------" 12 80
 }
 
 function pick_openfoam_path()

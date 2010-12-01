@@ -224,8 +224,7 @@ function process_online_log_of_timings()
 {
   #TODO: this value is hard coded for now, since it should come from the output of our timings script
   #The total count of "make[.]" found in our build_Qt.log
-  # FIXME: this hard coded value needs updating...
-  BUILD_QT_LAST_BUILD_COUNT=293
+  BUILD_QT_LAST_BUILD_COUNT=451
 
   #TODO: this value is hard coded for now, since it should come from the output of our timings script
   #The total count of "make[.]" found in our build_gcc.log

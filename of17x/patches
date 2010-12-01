@@ -182,6 +182,21 @@ function patchBashrcToSystemOpenMPI()
   echo '' >> prefs.sh
   echo 'export WM_MPLIB=SYSTEMOPENMPI' >> prefs.sh
 
+  #Have to fix MPI_ARCH_PATH that is expected by ParaView.
+  #Bug already reported: http://www.openfoam.com/mantisbt/view.php?id=96
+  echo '--- settings.sh.orig 2010-12-01 17:33:31.423939511 +0000
++++ settings.sh 2010-12-01 18:31:30.910483396 +0000
+@@ -243,6 +243,8 @@
+     export PLIBS="`mpicc --showme:link`"
+     libDir=`echo "$PLIBS" | sed -e '"'"'s/.*-L\([^ ]*\).*/\1/'"'"'`
+
++    export MPI_ARCH_PATH="${libDir%/*}"
++
+     if [ "$FOAM_VERBOSE" -a "$PS1" ]
+     then
+         echo "Using system installed MPI:"
+' | patch -p0
+
   cd $tmpVar
   unset tmpVar
 }
