@@ -271,6 +271,13 @@ function set_QT_PLATFORM_PATH()
   QT_PLATFORM_PATH="${WM_THIRD_PARTY_DIR}/platforms/$WM_ARCH$WM_COMPILER_ARCH/qt-everywhere-opensource-src-${QT_VERSION}"
 }
 
+#set options for building qt - only one, license related
+#NOTE: This function must always exist!
+function set_BUILD_QT_OPTION()
+{
+  BUILD_QT_OPTION="-opensource"
+}
+
 #set the CMake root path for OpenFOAM 1.7.x
 #NOTE: This function must always exist!
 function set_CMAKE_PATH()

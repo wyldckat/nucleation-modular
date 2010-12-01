@@ -739,6 +739,9 @@ function build_Qt()
       rm -rf $QT_PLATFORM_PATH
     fi
 
+    #set options for building qt - only one, license related
+    set_BUILD_QT_OPTION
+
     BUILD_QT_LOG="${BASE_OFVER_LOG_FOLDER}/build_Qt.log"
 
     #set up traps...
@@ -748,7 +751,7 @@ function build_Qt()
     echo "Build Qt:"
 
     #launch makeQt asynchronously
-    bash -c "time ./makeQt --confirm-license=yes" > "$BUILD_QT_LOG" 2>&1 &
+    bash -c "time ./makeQt ${BUILD_QT_OPTION}" > "$BUILD_QT_LOG" 2>&1 &
     BUILD_QT_PID=$!
     BUILD_QT_START_TIME=`date`
     BUILD_QT_UPDATE_TIME=$BUILD_QT_START_TIME
