@@ -520,6 +520,7 @@ function continue_after_failed_openfoam_git()
     esac
     unset casestat
     echo "------------------------------------------------------"
+    FOAMINSTALLFAILED_BUTCONT="Yes"
   fi
 }
 
