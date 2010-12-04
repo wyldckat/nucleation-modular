@@ -1,0 +1,27 @@
+#!/bin/bash
+
+#-- PATCHING FUNCTIONS For Ubuntu ------------------------------------------------------
+#list of functions herein:
+
+#global variables used by this script:
+
+
+#Code -----------------------------------------
+echo "Sourcing patching functions for OpenFOAM ${OF_LONG_VERSION}, specific to SuSE..."
+
+#-- FUNCTIONS -----------------------------------------------------
+
+#Apply patches associated with the system
+#NOTE: This function must always exist!
+function apply_patches_system()
+{
+  tmpVar=$PWD
+  cd_openfoam
+
+  #patch wmake rules
+  cd OpenFOAM-${OF_LONG_VERSION}/wmake/rules/General/
+  sed -i 's/GFLAGS     = -D$(WM_ARCH) -DWM_$(WM_PRECISION_OPTION)/GFLAGS     = -D$(WM_ARCH) -DWM_$(WM_PRECISION_OPTION) -P/g' ./general
+
+  cd $tmpVar
+  unset tmpVar
+}
