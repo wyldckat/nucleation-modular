@@ -7,7 +7,7 @@
 #   INST_SYSTEM - System variant for installation - defined in the master script
 
 #Code -----------------------------------------
-echo "Sourcing Main functions functions for OpenFOAM $OF_LONG_VERSION and Ubuntu..."
+echo "Sourcing Main functions functions for OpenFOAM $OF_LONG_VERSION and SuSE..."
 
 #Define files (including paths) to the files this script provides for of$OF_SHORT_VERSION/system
 #NOTE: This function must always exist!
@@ -22,16 +22,17 @@ function define_script_s_files_ofv_system()
 function define_packages_to_download_system()
 {
   if [ "$arch" == "x64" ]; then
-    if ! [ "$INSTALLMODE" == "fresh" -a "$USE_REPO_PV" == "on" -o "$USE_KITWARE_PV" == "on" ]; then
+	    ##CMAKE is not part of the third party package any more!
+    #if ! [ "$INSTALLMODE" == "fresh" -a "$USE_REPO_PV" == "on" -o "$USE_KITWARE_PV" == "on" ]; then
       #CMake is needed in case it isn't provided by the system
-      CMAKEVERSION="0.00"
-      if which cmake > /dev/null; then
-        CMAKEVERSION=`cmake --version | sed -e 's=.*\([0-9]\.[0-9]\)-patch\ =\1='`
-      fi
-      if isleftlarger_or_equal 2.7 $CMAKEVERSION || isleftlarger_or_equal $CMAKEVERSION 0.00; then
-        THIRDPARTY_BIN_CMAKE="ThirdParty-1.6.linuxGcc.gtgz"
-      fi
-    fi
+      #CMAKEVERSION="0.00"
+      #if which cmake > /dev/null; then
+      #  CMAKEVERSION=`cmake --version | sed -e 's=.*\([0-9]\.[0-9]\)-patch\ =\1='`
+      #fi
+      #if isleftlarger_or_equal 2.7 $CMAKEVERSION || isleftlarger_or_equal $CMAKEVERSION 0.00; then
+      #  THIRDPARTY_BIN_CMAKE="ThirdParty-1.6.linuxGcc.gtgz"
+      #fi
+    #fi
   fi
 }
 

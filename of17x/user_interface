@@ -108,6 +108,14 @@ function check_options_sanity()
       fi
     fi
 
+    #have to build paraview with of17x
+    if [ "x$BUILD_PARAVIEW" == "xoff" -a "xOF_SHORT_VERSION" == "of17x" ]; then
+	    BUILD_PARAVIEW=on
+            dialog --sleep 6 --backtitle "$GUI_BACKTITLE"   \
+              --title "Non-optional setting detected!" \
+              --infobox "\nParaView will need to be built, since the pre-built version isn't enough for the chosen options." 10 70
+    fi
+
     if [ "x$BUILD_PARAVIEW" == "xon" -a "x$BUILD_PARAVIEW_WITH_MPI" == "xoff" -a \
         "x$BUILD_PARAVIEW_WITH_GUI" == "xoff" ]; then
         BUILD_PARAVIEW_WITH_MPI=on
