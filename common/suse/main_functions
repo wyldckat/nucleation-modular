@@ -74,7 +74,8 @@ function install_packages()
 {
   #define which packages need to be installed (pv is not in standard repositories!)
   PACKAGES_TO_INSTALL="gcc-c++ binutils-devel flex bison git-core zlib-devel make"
-
+ 
+  #if [ "x$BUILD_PARAVIEW" == "xon" ] || ! [ "x$USE_REPO_PV" == "xon" -o "x$USE_KITWARE_PV" == "xon" ]; then
   if [ "x$BUILD_PARAVIEW" == "xon" ]; then
     PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL python-base cmake"
   fi
@@ -101,7 +102,7 @@ function install_packages()
 
   #install qt4-dev and qt4-dev-tools only if the custom build isn't used
   if [ "x$BUILD_QT" != "xon" ]; then
-    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libqt4-devel"
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL libqt4-devel libQtWebKit-devel"
   fi
 
   #install OSMesa when chosen for ParaView
@@ -131,7 +132,7 @@ function install_packages()
       fi
 
       echo 'The command:'
-      echo "    sudo zypper install -n $PACKAGES_TO_INSTALL"
+      echo "    sudo zypper install -n $PACKAGES_TO_INSTALL ./pv-1.1.4-1.1.i586.rpm"
       echo 'is now going to be executed.'
       wget "http://software.opensuse.org/search/download?base=openSUSE:11.3&file=openSUSE:/11.3:/Contrib/standard/i586/pv-1.1.4-1.1.i586.rpm&query=pv"
       sudo zypper -n install $PACKAGES_TO_INSTALL ./pv-1.1.4-1.1.i586.rpm
