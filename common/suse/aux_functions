@@ -20,11 +20,11 @@ echo "Sourcing SuSE Related Auxiliary functions..."
 function ispackage_installed()
 {
   set +e
-  DPKGRESULTTMP=`cnf $1 2>&1 | grep -e "sudo zypper install"`
+  DPKGRESULTTMP=`rpm -qa | grep "$1"`
   if [ "x$DPKGRESULTTMP" == "x" ]; then
-    return 0
-  else
     return 1
+  else
+    return 0
   fi
   unset DPKGRESULTTMP
   set -e
