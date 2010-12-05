@@ -31,11 +31,6 @@ function apply_fixes()
 
   cd_openfoam #this is a precautionary measure
 
-  #fix links to proper libraries for gcc, as long as the OpenFOAM's precompiled version is used
-  if isleftlarger_or_equal $SYSTEM_VERSION 9.10 && [ "x$USE_OF_GCC" == "xon" ]; then
-    link_gcc_libraries_to_system
-  fi
-
   #fix ParaView's help file reference, for when ParaView isn't built
   if [ "x$BUILD_PARAVIEW" == "xoff" ]; then
     cd_openfoam

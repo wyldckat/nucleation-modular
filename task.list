@@ -108,6 +108,7 @@ Done:
   - still need to add a patch for multi-core building of OpenMPI (see the patch
     here: http://www.openfoam.com/mantisbt/view.php?id=79). <- done
 
+
 --------------------------------------
 
 
@@ -122,6 +123,8 @@ Tasks to do:
 
   - add cmake to the build system/list
     - check sanity depending on Ubuntu version (and also adapt in Generic!) <- TODO!!
+    - need to do some check up on things that depend on this
+    - need to check how OF 1.6.x is being handled with this option
 
   - TEST FIX TEST FIX TEST FIX TEST FIX TEST FIX TEST FIX TEST FIX.... Then release?
     - Distros to test on:

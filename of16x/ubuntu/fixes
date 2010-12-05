@@ -24,7 +24,8 @@ function apply_fixes_system()
 function link_gcc_libraries_to_system()
 {
   #Define which folder to fix libraries
-  if [ "$SYSTEM_VERSION" != "8.04" ]; then
+  #[ "$SYSTEM_VERSION" != "8.04" ]
+  if isleftlarger_or_equal $SYSTEM_VERSION 9.10 then
     if [ "$arch" == "x64" ]; then
       LIBRARY_PATH_TO_FIX=${PATHOF}/ThirdParty-1.6/gcc-$GCC_VERSION/platforms/linux64/lib64
     elif [ "$arch" == "x86" ]; then
