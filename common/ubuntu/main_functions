@@ -117,7 +117,7 @@ function install_packages()
 
   #for documentation, these are necessary
   if [ "x$BUILD_DOCUMENTATION" == "xon" ]; then
-    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL doxygen graphviz"
+    PACKAGES_TO_INSTALL="$PACKAGES_TO_INSTALL doxygen graphviz texlive-latex-base"
   fi
 
   #for building gcc, these are necessary

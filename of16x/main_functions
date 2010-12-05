@@ -219,7 +219,7 @@ function unpack_downloaded_files()
 
   if [ "x$BUILD_CCM26TOFOAM" == "xon" ]; then
     cd_thirdparty
-    ln -s ../$CCMIO_PACKAGE $CCMIO_PACKAGE
+    ln -s $BASE_DOWNLOADS_FOLDER/$CCMIO_PACKAGE $CCMIO_PACKAGE
     #NOTE: unpacking will be done by the AllwmakeLibccmio script
     if [ -e "${CCMIO_MAKEFILES_FILES[1]}" -a -e "${CCMIO_MAKEFILES_OPTIONS[1]}" ]; then
       if [ ! -d "wmakeFiles/libccmio/Make" ]; then

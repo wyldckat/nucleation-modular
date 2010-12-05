@@ -22,6 +22,8 @@ function define_script_s_files_ofv_system()
 function define_packages_to_download_system()
 {
   if [ "$arch" == "x64" ]; then
+    : #nothing to do for now
+
 	    ##CMAKE is not part of the third party package any more!
     #if ! [ "$INSTALLMODE" == "fresh" -a "$USE_REPO_PV" == "on" -o "$USE_KITWARE_PV" == "on" ]; then
       #CMake is needed in case it isn't provided by the system
