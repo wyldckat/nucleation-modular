@@ -108,6 +108,8 @@ Done:
   - still need to add a patch for multi-core building of OpenMPI (see the patch
     here: http://www.openfoam.com/mantisbt/view.php?id=79). <- done
 
+  - Moved project to Nucleation.
+
 
 --------------------------------------
 
@@ -166,9 +168,6 @@ Unsorted tasks:
       2. strictly separate options that are client side from server side
       installations (like OSMesa in ParaView);
    7. add option to install Discretizer into the script; <- postponed
-   8. finally, move/copy the script (and dependents) into the new repo (in a
-   dedicated folder please!) and change the path to the repo in the new copy
-   (variable OPENFOAM_UBUNTU_SCRIPT_REPO).
 --------------------------------------
 
 
