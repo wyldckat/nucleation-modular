@@ -230,15 +230,15 @@ function do_wget()
 
   if [ "x$4" != "x" -a "x$4" != "x " ]; then
     if [ ! -e "$2" ]; then
-      wget "$4" "$wget_string" 2>&1
+      wget "$4" "$wget_string" -O "$2" 2>&1
     else
-      wget -c "$4" "$wget_string" 2>&1
+      wget -c "$4" "$wget_string" -O "$2" 2>&1
     fi
   else
     if [ ! -e "$2" ]; then
-      wget "$wget_string" 2>&1
+      wget "$wget_string" -O "$2" 2>&1
     else
-      wget -c "$wget_string" 2>&1
+      wget -c "$wget_string" -O "$2" 2>&1
     fi
   fi
   unset wget_string
